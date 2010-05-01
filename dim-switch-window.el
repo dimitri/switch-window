@@ -1,6 +1,22 @@
 ;;; dim-switch-window.el
 ;;
 ;; Offer a *visual* way to choose a window to switch to
+;;
+;; Copyright (C) 2010 Dimitri Fontaine
+;;
+;; Author: Dimitri Fontaine <dim@tapoueh.org>
+;; URL: http://www.emacswiki.org/emacs/switch-window.el
+;; Version: 0.2
+;; Created: 2010-04-30
+;; Keywords: window navigation
+;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
+;;
+;; This file is NOT part of GNU Emacs.
+;;
+;; Install:
+;;  (require 'dim-switch-window)
+;;
+;; It'll take over your C-x o binding.
 
 (defgroup dim:switch-window nil "dim:switch-window customization group"
   :group 'convenience)
@@ -10,10 +26,19 @@
   :type 'integer
   :group 'dim:switch-window)
 
+(defcustom dim:switch-window-timeout 5
+  "After this many seconds, cancel the window switching"
+  :type 'integer
+  :group 'dim:switch-window)
+
 (defun dim:switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let ((buf (get-buffer-create
-	      (concat " *" (number-to-string num) "*"))))
+	      (concat " *"
+		      (number-to-string num) 
+		      ": " 
+		      (buffer-name (window-buffer win))
+		      "*"))))
     (with-current-buffer buf
       (insert (concat "\n\n    " (number-to-string num)))
       (text-scale-increase dim:switch-window-increase))
@@ -38,9 +63,19 @@ ask user for the window where move to"
 
     ;; choose a window
     (while (not key)
-      (let ((input (event-basic-type (read-event "Move to window: " nil 5))))
-	(when (and (not (symbolp input)) (<= 49 input) (>= 57 input))
-	  (setq key (- input 48)))))
+      (let ((input 
+	     (event-basic-type
+	      (read-event "Move to window: " nil dim:switch-window-timeout))))
+	
+	(when (or (null input) (not (symbolp input)))
+	  (cond ((null input) ; reached timeout
+		 (setq key 1))
+
+		((and (<= 49 input) (>= 57 input)) ; 1 to 9
+		 (setq key (- input 48)))
+
+		((eq input 113) ; q
+		 (setq key 1))))))
 
     ;; get those huge numbers away
     (dolist (buf buffers)
@@ -53,7 +88,9 @@ ask user for the window where move to"
     (dolist (win (window-list))
       (when (eq num key)
 	(select-window win))
-      (setq num (1+ num)))))
+      (setq num (1+ num)))
+
+    (message "Moved to %S" (buffer-name (window-buffer (selected-window))))))
 
 (global-set-key (kbd "C-x o") 'dim:switch-window)
 (provide 'dim-switch-window)
