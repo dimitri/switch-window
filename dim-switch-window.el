@@ -6,7 +6,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.2
+;; Version: 0.3
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -61,21 +61,33 @@ ask user for the window where move to"
       (setq buffers (cons (dim:switch-window-display-number win num) buffers))
       (setq num (1+ num)))
 
-    ;; choose a window
-    (while (not key)
-      (let ((input 
-	     (event-basic-type
-	      (read-event "Move to window: " nil dim:switch-window-timeout))))
-	
-	(when (or (null input) (not (symbolp input)))
-	  (cond ((null input) ; reached timeout
-		 (setq key 1))
+    ;; choose a window, asking the user when it makes sense ok we could have
+    ;; created useless buffers we'll kill. That's either 1 or 2 buffers,
+    ;; though. Not excited enough to fix that.
+    ;;
+    ;; Remember than (eq num (1+ (length (window-list))))
+    (cond 
+     ((eq num 2)
+      (setq key 1))
 
-		((and (<= 49 input) (>= 57 input)) ; 1 to 9
-		 (setq key (- input 48)))
+     ((eq num 3)
+      (setq key 2))
 
-		((eq input 113) ; q
-		 (setq key 1))))))
+     (t
+      (while (not key)
+	(let ((input 
+	       (event-basic-type
+		(read-event "Move to window: " nil dim:switch-window-timeout))))
+	  
+	  (when (or (null input) (not (symbolp input)))
+	    (cond ((null input) ; reached timeout
+		   (setq key 1))
+
+		  ((and (<= 49 input) (>= 57 input)) ; 1 to 9
+		   (setq key (- input 48)))
+
+		  ((eq input 113) ; q
+		   (setq key 1))))))))
 
     ;; get those huge numbers away
     (dolist (buf buffers)
