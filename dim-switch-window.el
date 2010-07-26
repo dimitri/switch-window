@@ -40,7 +40,7 @@
 		      (buffer-name (window-buffer win))
 		      "*"))))
     (with-current-buffer buf
-      (insert (concat "\n\n    " (number-to-string num)))
+      (insert "\n\n    " (number-to-string num))
       (text-scale-increase dim:switch-window-increase))
 
     (set-window-buffer win buf)
@@ -62,11 +62,10 @@
 ask user for the window where move to"
   (interactive)
   (if (< (length (window-list)) 3)
-    (call-interactively 'other-window)
+      (call-interactively 'other-window)
 
     (let ((config (current-window-configuration))
 	  (num 1)
-	  (redisplay-dont-pause t)
 	  key buffers)
 
       ;; arrange so that C-g will get back to previous window configuration
@@ -83,10 +82,11 @@ ask user for the window where move to"
 		      (read-event "Move to window: " 
 				  nil dim:switch-window-timeout))))
 		
-		(unless (symbolp input)
-		  (if (and (<= 49 input) (>= 57 input)) ; 1 to 9
-		      (setq key (- input 48))
-		    (setq key 1))))))
+		(if (null input) (setq key 1) ; timeout
+		  (unless (symbolp input)
+		    (if (and (<= 49 input) (>= 57 input)) ; 1 to 9
+			(setq key (- input 48))
+		      (setq key 1)))))))
 
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
