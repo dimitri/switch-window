@@ -31,6 +31,19 @@
   :type 'integer
   :group 'dim:switch-window)
 
+(defcustom dim:switch-window-relative nil
+  "Control the ordering of windows, when true this depends on current-window"
+  :type 'boolean
+  :group 'dim:switch-window)
+
+(defun dim:switch-window-list (&optional from-current-window)
+  "list windows for current frame, starting at top left unless
+from-current-window is not nil"
+  (if (or from-current-window dim:switch-window-relative)
+      (window-list)
+    (message "%S" (window-at 0 0))
+    (window-list nil nil (window-at 0 0))))
+
 (defun dim:switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let ((buf (get-buffer-create
@@ -47,10 +60,10 @@
     buf))
 
 (defun dim:switch-to-window-number (n)
-  "move to given window, target is the place of the window in (window-list)"
+  "move to given window, target is the place of the window in (dim:switch-window-list)"
   (let ((c 1))
     (unless (eq n 1)
-      (dolist (win (window-list))
+      (dolist (win (dim:switch-window-list))
 	(when (eq c n)
 	  (select-window win))
 	(setq c (1+ c)))
@@ -72,7 +85,7 @@ ask user for the window where move to"
       (unwind-protect 
 	  (progn
 	    ;; display big numbers to ease window selection
-	    (dolist (win (window-list))
+	    (dolist (win (dim:switch-window-list))
 	      (push (dim:switch-window-display-number win num) buffers)
 	      (setq num (1+ num)))
 
