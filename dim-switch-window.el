@@ -6,7 +6,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.3
+;; Version: 0.4
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -31,6 +31,19 @@
   :type 'integer
   :group 'dim:switch-window)
 
+(defcustom dim:switch-window-relative nil
+  "Control the ordering of windows, when true this depends on current-window"
+  :type 'boolean
+  :group 'dim:switch-window)
+
+(defun dim:switch-window-list (&optional from-current-window)
+  "list windows for current frame, starting at top left unless
+from-current-window is not nil"
+  (if (or from-current-window dim:switch-window-relative)
+      (window-list)
+    (message "%S" (window-at 0 0))
+    (window-list nil nil (window-at 0 0))))
+
 (defun dim:switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let ((buf (get-buffer-create
@@ -40,69 +53,58 @@
 		      (buffer-name (window-buffer win))
 		      "*"))))
     (with-current-buffer buf
-      (insert (concat "\n\n    " (number-to-string num)))
+      (insert "\n\n    " (number-to-string num))
       (text-scale-increase dim:switch-window-increase))
 
     (set-window-buffer win buf)
     buf))
 
+(defun dim:switch-to-window-number (n)
+  "move to given window, target is the place of the window in (dim:switch-window-list)"
+  (let ((c 1))
+    (unless (eq n 1)
+      (dolist (win (dim:switch-window-list))
+	(when (eq c n)
+	  (select-window win))
+	(setq c (1+ c)))
+
+      (message "Moved to %S" (buffer-name (window-buffer (selected-window)))))))
+
 (defun dim:switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
   (interactive)
-  (let ((config (current-window-configuration))
-        (num 1)
-	(redisplay-dont-pause t)
-	key
-        buffers)
-    
-    ;; display big numbers to ease window selection
-    (dolist (win (window-list))
-      (setq buffers (cons (dim:switch-window-display-number win num) buffers))
-      (setq num (1+ num)))
+  (if (< (length (window-list)) 3)
+      (call-interactively 'other-window)
 
-    ;; choose a window, asking the user when it makes sense ok we could have
-    ;; created useless buffers we'll kill. That's either 1 or 2 buffers,
-    ;; though. Not excited enough to fix that.
-    ;;
-    ;; Remember than (eq num (1+ (length (window-list))))
-    (cond 
-     ((eq num 2)
-      (setq key 1))
+    (let ((config (current-window-configuration))
+	  (num 1)
+	  key buffers)
 
-     ((eq num 3)
-      (setq key 2))
+      ;; arrange so that C-g will get back to previous window configuration
+      (unwind-protect 
+	  (progn
+	    ;; display big numbers to ease window selection
+	    (dolist (win (dim:switch-window-list))
+	      (push (dim:switch-window-display-number win num) buffers)
+	      (setq num (1+ num)))
 
-     (t
-      (while (not key)
-	(let ((input 
-	       (event-basic-type
-		(read-event "Move to window: " nil dim:switch-window-timeout))))
-	  
-	  (when (or (null input) (not (symbolp input)))
-	    (cond ((null input) ; reached timeout
-		   (setq key 1))
+	    (while (not key)
+	      (let ((input 
+		     (event-basic-type
+		      (read-event "Move to window: " 
+				  nil dim:switch-window-timeout))))
+		
+		(if (null input) (setq key 1) ; timeout
+		  (unless (symbolp input)
+		    (if (and (<= 49 input) (>= 57 input)) ; 1 to 9
+			(setq key (- input 48))
+		      (setq key 1)))))))
 
-		  ((and (<= 49 input) (>= 57 input)) ; 1 to 9
-		   (setq key (- input 48)))
-
-		  ((eq input 113) ; q
-		   (setq key 1))))))))
-
-    ;; get those huge numbers away
-    (dolist (buf buffers)
-      (kill-buffer buf))
-
-    (set-window-configuration config)
-
-    ;; move to selected window
-    (setq num 1)
-    (dolist (win (window-list))
-      (when (eq num key)
-	(select-window win))
-      (setq num (1+ num)))
-
-    (message "Moved to %S" (buffer-name (window-buffer (selected-window))))))
+	;; get those huge numbers away
+	(mapc 'kill-buffer buffers)
+	(set-window-configuration config)
+	(dim:switch-to-window-number key)))))
 
 (global-set-key (kbd "C-x o") 'dim:switch-window)
 (provide 'dim-switch-window)
