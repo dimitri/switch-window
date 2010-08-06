@@ -62,13 +62,11 @@ from-current-window is not nil"
 (defun dim:switch-to-window-number (n)
   "move to given window, target is the place of the window in (dim:switch-window-list)"
   (let ((c 1))
-    (unless (eq n 1)
-      (dolist (win (dim:switch-window-list))
-	(when (eq c n)
-	  (select-window win))
-	(setq c (1+ c)))
-
-      (message "Moved to %S" (buffer-name (window-buffer (selected-window)))))))
+    (dolist (win (dim:switch-window-list))
+      (when (eq c n)
+	(select-window win))
+      (setq c (1+ c)))
+    (message "Moved to %S" (buffer-name (window-buffer (selected-window))))))
 
 (defun dim:switch-window ()
   "Display an overlay in each window showing a unique key, then
