@@ -102,7 +102,8 @@ ask user for the window where move to"
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
 	(set-window-configuration config)
-	(dim:switch-to-window-number key)))))
+	(when key
+	  (dim:switch-to-window-number key))))))
 
 (global-set-key (kbd "C-x o") 'dim:switch-window)
 (provide 'dim-switch-window)
