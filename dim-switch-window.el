@@ -60,13 +60,18 @@ from-current-window is not nil"
 		      (buffer-name (window-buffer win))
 		      "*"))))
     (with-current-buffer buf
-      (text-scale-increase 
-       (if (> (/ (float (window-body-height win)) 
-		 dim:switch-window-increase)
-	      1)
-	   dim:switch-window-increase
-	 (window-body-height win)))
-      (insert "\n\n    " (number-to-string num)))
+      (let* ((w (window-width win))
+	     (h (window-body-height win))
+	     (increased-lines (/ (float h) dim:switch-window-increase))
+	     (scale (if (> increased-lines 1) dim:switch-window-increase h))
+	     (lines-before (/ increased-lines 2))
+	     (margin-left (/ w h) ))
+	;; increase to maximum dim:switch-window-increase
+	(text-scale-increase scale)
+	;; make it so that the hyuge number appears centered
+	(dotimes (i lines-before) (insert "\n"))
+	(dotimes (i margin-left)  (insert " "))
+	(insert (number-to-string num))))
 
     (set-window-buffer win buf)
     buf))
