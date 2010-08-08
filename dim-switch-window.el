@@ -107,7 +107,7 @@ ask user for the window where move to"
 		
 		(if (null input) (setq key 1) ; timeout
 		  (unless (symbolp input)
-		    (if (and (<= 49 input) (>= 57 input)) ; 1 to 9
+		    (if (and (<= ?1 input) (>= ?9 input)) ; 1 to 9
 			(setq key (- input 48))
 		      (setq key 1)))))))
 
