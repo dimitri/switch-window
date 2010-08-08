@@ -6,7 +6,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.4
+;; Version: 0.5
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -17,12 +17,19 @@
 ;;  (require 'dim-switch-window)
 ;;
 ;; It'll take over your C-x o binding.
+;;
+;; Changelog
+;;
+;; 0.5 - 2010-08-08 - Polishing
+;;
+;;  - dim:switch-window-increase is now a maximum value
+;;
 
 (defgroup dim:switch-window nil "dim:switch-window customization group"
   :group 'convenience)
 
 (defcustom dim:switch-window-increase 12
-  "How much to increase text size in the window numbering"
+  "How much to increase text size in the window numbering, maximum"
   :type 'integer
   :group 'dim:switch-window)
 
@@ -53,8 +60,13 @@ from-current-window is not nil"
 		      (buffer-name (window-buffer win))
 		      "*"))))
     (with-current-buffer buf
-      (insert "\n\n    " (number-to-string num))
-      (text-scale-increase dim:switch-window-increase))
+      (text-scale-increase 
+       (if (> (/ (float (window-body-height win)) 
+		 dim:switch-window-increase)
+	      1)
+	   dim:switch-window-increase
+	 (window-body-height win)))
+      (insert "\n\n    " (number-to-string num)))
 
     (set-window-buffer win buf)
     buf))
