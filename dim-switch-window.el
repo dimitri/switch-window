@@ -114,7 +114,7 @@ ask user for the window where move to"
 		  (unless (symbolp input)
 		    (if (and (<= ?1 input) (>= ?9 input)) ; 1 to 9
 			(setq key (- input 48))
-		      (setq key 1)))))))
+		      (keyboard-quit)))))))
 
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
