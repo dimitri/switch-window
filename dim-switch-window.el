@@ -47,7 +47,7 @@
   "list windows for current frame, starting at top left unless
 from-current-window is not nil"
   (if (or from-current-window dim:switch-window-relative)
-      (window-list)
+      (window-list nil nil)
     (message "%S" (window-at 0 0))
     (window-list nil nil (window-at 0 0))))
 
