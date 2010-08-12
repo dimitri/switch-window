@@ -83,7 +83,10 @@ from-current-window is not nil"
       (when (eq c n)
 	(select-window win))
       (setq c (1+ c)))
-    (message "Moved to %S" (buffer-name (window-buffer (selected-window))))))
+    (unless (minibuffer-window-active-p (selected-window))
+      (message "Moved to %S" 
+	       (substring-no-properties 
+		(buffer-name (window-buffer (selected-window))))))))
 
 (defun dim:switch-window ()
   "Display an overlay in each window showing a unique key, then
@@ -94,6 +97,7 @@ ask user for the window where move to"
 
     (let ((config (current-window-configuration))
 	  (num 1)
+	  (minibuffer-num nil)
 	  key buffers)
 
       ;; arrange so that C-g will get back to previous window configuration
@@ -101,14 +105,20 @@ ask user for the window where move to"
 	  (progn
 	    ;; display big numbers to ease window selection
 	    (dolist (win (dim:switch-window-list))
-	      (push (dim:switch-window-display-number win num) buffers)
+	      (if (minibuffer-window-active-p win)
+		  (setq minibuffer-num num)
+		(push (dim:switch-window-display-number win num) buffers))
 	      (setq num (1+ num)))
 
 	    (while (not key)
 	      (let ((input 
 		     (event-basic-type
-		      (read-event "Move to window: " 
-				  nil dim:switch-window-timeout))))
+		      (read-event 
+		       (if minibuffer-num
+			   (format "Move to window [minibuffer is %d]: " 
+				   minibuffer-num)
+			 "Move to window: ")
+		       nil dim:switch-window-timeout))))
 		
 		(if (null input) (setq key 1) ; timeout
 		  (unless (symbolp input)
