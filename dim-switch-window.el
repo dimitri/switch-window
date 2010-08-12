@@ -6,7 +6,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.5
+;; Version: 0.6
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -19,6 +19,12 @@
 ;; It'll take over your C-x o binding.
 ;;
 ;; Changelog
+;;
+;; 0.6 - 2010-08-12 - *Minibuf-1*
+;;
+;;  - add support for selecting the minibuffer when it's active
+;;  - some try at a better horizontal centering
+;;  - assorted cleanup
 ;;
 ;; 0.5 - 2010-08-08 - Polishing
 ;;
@@ -48,7 +54,6 @@
 from-current-window is not nil"
   (if (or from-current-window dim:switch-window-relative)
       (window-list nil nil)
-    (message "%S" (window-at 0 0))
     (window-list nil nil (window-at 0 0))))
 
 (defun dim:switch-window-display-number (win num)
@@ -68,7 +73,7 @@ from-current-window is not nil"
 	     (margin-left (/ w h) ))
 	;; increase to maximum dim:switch-window-increase
 	(text-scale-increase scale)
-	;; make it so that the hyuge number appears centered
+	;; make it so that the huge number appears centered
 	(dotimes (i lines-before) (insert "\n"))
 	(dotimes (i margin-left)  (insert " "))
 	(insert (number-to-string num))))
