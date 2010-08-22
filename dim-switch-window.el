@@ -124,8 +124,9 @@ ask user for the window where move to"
 				   minibuffer-num)
 			 "Move to window: ")
 		       nil dim:switch-window-timeout))))
-		
-		(if (null input) (setq key 1) ; timeout
+
+		(if (or (null input) (eq input 'return)) 
+		    (keyboard-quit) ; timeout or RET
 		  (unless (symbolp input)
 		    (if (and (<= ?1 input) (>= ?9 input)) ; 1 to 9
 			(setq key (- input 48))
