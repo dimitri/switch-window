@@ -20,6 +20,12 @@
 ;;
 ;; Changelog
 ;;
+;; 0.7 - 2010-08-23 - window-dedicated-p
+;;
+;;  - temporarily unset the window dedicated flag for displaying the
+;;    numbers, patch from René Kyllingstad <Rene@Kyllingstad.com>
+;;  - fix timeout and RET handling wrt to not changing window selection
+;;
 ;; 0.6 - 2010-08-12 - *Minibuf-1*
 ;;
 ;;  - add support for selecting the minibuffer when it's active
@@ -103,13 +109,17 @@ ask user for the window where move to"
     (let ((config (current-window-configuration))
 	  (num 1)
 	  (minibuffer-num nil)
-	  key buffers)
+	  key buffers
+	  dedicated-windows)
 
       ;; arrange so that C-g will get back to previous window configuration
       (unwind-protect 
 	  (progn
 	    ;; display big numbers to ease window selection
 	    (dolist (win (dim:switch-window-list))
+	      (when (window-dedicated-p win)
+		(push (cons win (window-dedicated-p win)) dedicated-windows)
+		(set-window-dedicated-p win nil))
 	      (if (minibuffer-window-active-p win)
 		  (setq minibuffer-num num)
 		(push (dim:switch-window-display-number win num) buffers))
@@ -135,6 +145,8 @@ ask user for the window where move to"
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
 	(set-window-configuration config)
+	(dolist (w dedicated-windows)
+	  (set-window-dedicated-p (car w) (cdr w)))
 	(when key
 	  (dim:switch-to-window-number key))))))
 
