@@ -3,7 +3,7 @@
 == Window switching, the visual way.
 
 See http://tapoueh.org/projects.html#sec19, then install the
-+switch-window.el+ file here (with +http://github.com/dimitri/el-get+ it's
++switch-window.el+ file here (with http://github.com/dimitri/el-get it's
 even easier).
 
 == Manual install
