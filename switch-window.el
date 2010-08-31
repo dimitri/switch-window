@@ -12,7 +12,7 @@
 ;; This file is NOT part of GNU Emacs.
 ;;
 ;; Install:
-;;  (require 'dim-switch-window)
+;;  (require 'switch-window)
 ;;
 ;; It'll take over your C-x o binding.
 ;;
