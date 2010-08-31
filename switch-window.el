@@ -1,6 +1,4 @@
-;;; dim-switch-window.el --- 
-;;
-;; Offer a *visual* way to choose a window to switch to
+;;; dim-switch-window.el --- A *visual* way to choose a window to switch to
 ;;
 ;; Copyright (C) 2010 Dimitri Fontaine
 ;;
@@ -17,6 +15,11 @@
 ;;  (require 'dim-switch-window)
 ;;
 ;; It'll take over your C-x o binding.
+;;
+;; TODO
+;;
+;;  - add support for 0, then for letters on the keyboard
+;;  - try to use quail-keyboard-layout doing so
 ;;
 ;; Changelog
 ;;
