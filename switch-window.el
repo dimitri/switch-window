@@ -1,4 +1,4 @@
-;;; dim-switch-window.el
+;;; dim-switch-window.el --- 
 ;;
 ;; Offer a *visual* way to choose a window to switch to
 ;;
@@ -6,7 +6,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.6
+;; Version: 0.7
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -151,4 +151,4 @@ ask user for the window where move to"
 	  (dim:switch-to-window-number key))))))
 
 (global-set-key (kbd "C-x o") 'dim:switch-window)
-(provide 'dim-switch-window)
+(provide 'switch-window)
