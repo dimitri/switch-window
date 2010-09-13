@@ -40,32 +40,32 @@
 ;;  - dim:switch-window-increase is now a maximum value
 ;;
 
-(defgroup dim:switch-window nil "dim:switch-window customization group"
+(defgroup switch-window nil "switch-window customization group"
   :group 'convenience)
 
-(defcustom dim:switch-window-increase 12
+(defcustom switch-window-increase 12
   "How much to increase text size in the window numbering, maximum"
   :type 'integer
-  :group 'dim:switch-window)
+  :group 'switch-window)
 
-(defcustom dim:switch-window-timeout 5
+(defcustom switch-window-timeout 5
   "After this many seconds, cancel the window switching"
   :type 'integer
-  :group 'dim:switch-window)
+  :group 'switch-window)
 
-(defcustom dim:switch-window-relative nil
+(defcustom switch-window-relative nil
   "Control the ordering of windows, when true this depends on current-window"
   :type 'boolean
-  :group 'dim:switch-window)
+  :group 'switch-window)
 
-(defun dim:switch-window-list (&optional from-current-window)
+(defun switch-window-list (&optional from-current-window)
   "list windows for current frame, starting at top left unless
 from-current-window is not nil"
-  (if (or from-current-window dim:switch-window-relative)
+  (if (or from-current-window switch-window-relative)
       (window-list nil nil)
     (window-list nil nil (window-at 0 0))))
 
-(defun dim:switch-window-display-number (win num)
+(defun switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let ((buf (get-buffer-create
 	      (concat " *"
@@ -76,11 +76,11 @@ from-current-window is not nil"
     (with-current-buffer buf
       (let* ((w (window-width win))
 	     (h (window-body-height win))
-	     (increased-lines (/ (float h) dim:switch-window-increase))
-	     (scale (if (> increased-lines 1) dim:switch-window-increase h))
+	     (increased-lines (/ (float h) switch-window-increase))
+	     (scale (if (> increased-lines 1) switch-window-increase h))
 	     (lines-before (/ increased-lines 2))
 	     (margin-left (/ w h) ))
-	;; increase to maximum dim:switch-window-increase
+	;; increase to maximum switch-window-increase
 	(text-scale-increase scale)
 	;; make it so that the huge number appears centered
 	(dotimes (i lines-before) (insert "\n"))
@@ -90,10 +90,10 @@ from-current-window is not nil"
     (set-window-buffer win buf)
     buf))
 
-(defun dim:switch-to-window-number (n)
-  "move to given window, target is the place of the window in (dim:switch-window-list)"
+(defun switch-to-window-number (n)
+  "move to given window, target is the place of the window in (switch-window-list)"
   (let ((c 1))
-    (dolist (win (dim:switch-window-list))
+    (dolist (win (switch-window-list))
       (when (eq c n)
 	(select-window win))
       (setq c (1+ c)))
@@ -102,7 +102,7 @@ from-current-window is not nil"
 	       (substring-no-properties 
 		(buffer-name (window-buffer (selected-window))))))))
 
-(defun dim:switch-window ()
+(defun switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
   (interactive)
@@ -119,13 +119,13 @@ ask user for the window where move to"
       (unwind-protect 
 	  (progn
 	    ;; display big numbers to ease window selection
-	    (dolist (win (dim:switch-window-list))
+	    (dolist (win (switch-window-list))
 	      (when (window-dedicated-p win)
 		(push (cons win (window-dedicated-p win)) dedicated-windows)
 		(set-window-dedicated-p win nil))
 	      (if (minibuffer-window-active-p win)
 		  (setq minibuffer-num num)
-		(push (dim:switch-window-display-number win num) buffers))
+		(push (switch-window-display-number win num) buffers))
 	      (setq num (1+ num)))
 
 	    (while (not key)
@@ -136,7 +136,7 @@ ask user for the window where move to"
 			   (format "Move to window [minibuffer is %d]: " 
 				   minibuffer-num)
 			 "Move to window: ")
-		       nil dim:switch-window-timeout))))
+		       nil switch-window-timeout))))
 
 		(if (or (null input) (eq input 'return)) 
 		    (keyboard-quit) ; timeout or RET
@@ -151,7 +151,7 @@ ask user for the window where move to"
 	(dolist (w dedicated-windows)
 	  (set-window-dedicated-p (car w) (cdr w)))
 	(when key
-	  (dim:switch-to-window-number key))))))
+	  (switch-to-window-number key))))))
 
-(global-set-key (kbd "C-x o") 'dim:switch-window)
+(global-set-key (kbd "C-x o") 'switch-window)
 (provide 'switch-window)
