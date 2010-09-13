@@ -16,12 +16,12 @@
 ;;
 ;; It'll take over your C-x o binding.
 ;;
-;; TODO
-;;
-;;  - add support for 0, then for letters on the keyboard
-;;  - try to use quail-keyboard-layout doing so
-;;
 ;; Changelog
+;;
+;; 0.8 - 2010-09-13 - 999
+;;
+;;  - Suport more than 9 windows (with a single key to type)
+;;  - Use quail-keyboard-layout to choose single key labels for windows
 ;;
 ;; 0.7 - 2010-08-23 - window-dedicated-p
 ;;
@@ -39,6 +39,9 @@
 ;;
 ;;  - dim:switch-window-increase is now a maximum value
 ;;
+
+;; We use loop and subseq
+(require 'cl)
 
 (defgroup switch-window nil "switch-window customization group"
   :group 'convenience)
@@ -58,6 +61,19 @@
   :type 'boolean
   :group 'switch-window)
 
+(defun switch-window-enumerate ()
+  "Return a list of one-letter strings to label current windows"
+  (subseq 
+   (loop with layout = (split-string quail-keyboard-layout "")
+	 for row from 1 to 4
+	 nconc (loop for col from 1 to 10
+		     collect (nth (+ 1 (* 2 col) (* 30 row)) layout)))
+   0 (length (switch-window-list))))
+
+(defun switch-window-label (num)
+  "Return the label to use for a given window number"
+  (nth (- num 1) (switch-window-enumerate)))
+  
 (defun switch-window-list (&optional from-current-window)
   "list windows for current frame, starting at top left unless
 from-current-window is not nil"
@@ -67,12 +83,9 @@ from-current-window is not nil"
 
 (defun switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
-  (let ((buf (get-buffer-create
-	      (concat " *"
-		      (number-to-string num) 
-		      ": " 
-		      (buffer-name (window-buffer win))
-		      "*"))))
+  (let* ((label (switch-window-label num))
+	 (buf (get-buffer-create
+	       (format " *%s: %s*" label (buffer-name (window-buffer win))))))
     (with-current-buffer buf
       (let* ((w (window-width win))
 	     (h (window-body-height win))
@@ -85,7 +98,7 @@ from-current-window is not nil"
 	;; make it so that the huge number appears centered
 	(dotimes (i lines-before) (insert "\n"))
 	(dotimes (i margin-left)  (insert " "))
-	(insert (number-to-string num))))
+	(insert label)))
 
     (set-window-buffer win buf)
     buf))
@@ -133,17 +146,20 @@ ask user for the window where move to"
 		     (event-basic-type
 		      (read-event 
 		       (if minibuffer-num
-			   (format "Move to window [minibuffer is %d]: " 
-				   minibuffer-num)
+			   (format "Move to window [minibuffer is %s]: " 
+				   (switch-window-label minibuffer-num))
 			 "Move to window: ")
 		       nil switch-window-timeout))))
 
 		(if (or (null input) (eq input 'return)) 
 		    (keyboard-quit) ; timeout or RET
 		  (unless (symbolp input)
-		    (if (and (<= ?1 input) (>= ?9 input)) ; 1 to 9
-			(setq key (- input 48))
-		      (keyboard-quit)))))))
+		    (let* ((wchars (mapcar 'string-to-char 
+					   (switch-window-enumerate)))
+			   (pos (position input wchars)))
+		      (if pos
+			  (setq key (1+ pos))
+			(keyboard-quit))))))))
 
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
