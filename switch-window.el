@@ -42,6 +42,7 @@
 
 ;; We use loop and subseq
 (require 'cl)
+(require 'quail)
 
 (defgroup switch-window nil "switch-window customization group"
   :group 'convenience)
