@@ -64,7 +64,7 @@
 
 (defun switch-window-enumerate ()
   "Return a list of one-letter strings to label current windows"
-  (subseq 
+  (subseq
    (loop with layout = (split-string quail-keyboard-layout "")
 	 for row from 1 to 4
 	 nconc (loop for col from 1 to 10
@@ -74,7 +74,7 @@
 (defun switch-window-label (num)
   "Return the label to use for a given window number"
   (nth (- num 1) (switch-window-enumerate)))
-  
+
 (defun switch-window-list (&optional from-current-window)
   "list windows for current frame, starting at top left unless
 from-current-window is not nil"
@@ -112,8 +112,8 @@ from-current-window is not nil"
 	(select-window win))
       (setq c (1+ c)))
     (unless (minibuffer-window-active-p (selected-window))
-      (message "Moved to %S" 
-	       (substring-no-properties 
+      (message "Moved to %S"
+	       (substring-no-properties
 		(buffer-name (window-buffer (selected-window))))))))
 
 (defun switch-window ()
@@ -130,7 +130,7 @@ ask user for the window where move to"
 	  dedicated-windows)
 
       ;; arrange so that C-g will get back to previous window configuration
-      (unwind-protect 
+      (unwind-protect
 	  (progn
 	    ;; display big numbers to ease window selection
 	    (dolist (win (switch-window-list))
@@ -143,19 +143,19 @@ ask user for the window where move to"
 	      (setq num (1+ num)))
 
 	    (while (not key)
-	      (let ((input 
+	      (let ((input
 		     (event-basic-type
-		      (read-event 
+		      (read-event
 		       (if minibuffer-num
-			   (format "Move to window [minibuffer is %s]: " 
+			   (format "Move to window [minibuffer is %s]: "
 				   (switch-window-label minibuffer-num))
 			 "Move to window: ")
 		       nil switch-window-timeout))))
 
-		(if (or (null input) (eq input 'return)) 
+		(if (or (null input) (eq input 'return))
 		    (keyboard-quit) ; timeout or RET
 		  (unless (symbolp input)
-		    (let* ((wchars (mapcar 'string-to-char 
+		    (let* ((wchars (mapcar 'string-to-char
 					   (switch-window-enumerate)))
 			   (pos (position input wchars)))
 		      (if pos
