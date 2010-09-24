@@ -127,6 +127,7 @@ ask user for the window where move to"
 	  (num 1)
 	  (minibuffer-num nil)
 	  key buffers
+	  window-points
 	  dedicated-windows)
 
       ;; arrange so that C-g will get back to previous window configuration
@@ -134,6 +135,7 @@ ask user for the window where move to"
 	  (progn
 	    ;; display big numbers to ease window selection
 	    (dolist (win (switch-window-list))
+	      (push (cons win (window-point win)) window-points)
 	      (when (window-dedicated-p win)
 		(push (cons win (window-dedicated-p win)) dedicated-windows)
 		(set-window-dedicated-p win nil))
@@ -165,6 +167,8 @@ ask user for the window where move to"
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
 	(set-window-configuration config)
+	(dolist (w window-points)
+	  (set-window-point (car w) (cdr w)))
 	(dolist (w dedicated-windows)
 	  (set-window-dedicated-p (car w) (cdr w)))
 	(when key
