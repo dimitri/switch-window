@@ -80,7 +80,7 @@
 from-current-window is not nil"
   (if (or from-current-window switch-window-relative)
       (window-list nil nil)
-    (window-list nil nil (window-at 0 0))))
+    (window-list nil nil (frame-first-window))))
 
 (defun switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
