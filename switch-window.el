@@ -14,7 +14,7 @@
 ;; Install:
 ;;  (require 'switch-window)
 ;;
-;; It'll take over your C-x o binding.
+;; It'll add advice to `other-window' command.
 ;;
 ;; Changelog
 ;;
@@ -170,6 +170,9 @@ ask user for the window where move to"
 	(when key
 	  (switch-to-window-number key))))))
 
-(global-set-key (kbd "C-x o") 'switch-window)
-(define-key term-raw-map (kbd "C-x o") 'switch-window)
+(defadvice other-window (around switch-window-wrapper () activate)
+  (if (< (length (window-list)) 3)
+      ad-do-it
+    (switch-window)))
+
 (provide 'switch-window)
