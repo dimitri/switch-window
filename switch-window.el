@@ -175,7 +175,8 @@ ask user for the window where move to"
 	  (switch-to-window-number key))))))
 
 (defadvice other-window (around switch-window-wrapper () activate)
-  (if (< (length (window-list)) 3)
+  (if (or (not (interactive-p))
+	  (< (length (window-list)) 3))
       ad-do-it
     (switch-window)))
 
