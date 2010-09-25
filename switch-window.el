@@ -171,5 +171,4 @@ ask user for the window where move to"
 	  (switch-to-window-number key))))))
 
 (global-set-key (kbd "C-x o") 'switch-window)
-(define-key term-raw-map (kbd "C-x o") 'switch-window)
 (provide 'switch-window)
