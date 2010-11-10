@@ -95,7 +95,8 @@ from-current-window is not nil"
 	     (lines-before (/ increased-lines 2))
 	     (margin-left (/ w h) ))
 	;; increase to maximum switch-window-increase
-	(text-scale-increase scale)
+	(when (fboundp 'text-scale-increase)
+	  (text-scale-increase scale))
 	;; make it so that the huge number appears centered
 	(dotimes (i lines-before) (insert "\n"))
 	(dotimes (i margin-left)  (insert " "))
