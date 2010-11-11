@@ -4,7 +4,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.8
+;; Version: 0.9
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -17,6 +17,10 @@
 ;; It'll take over your C-x o binding.
 ;;
 ;; Changelog
+;;
+;; 0.9 - 2010-11-11 - emacs22 called, it wants some support
+;;
+;;  - implement a propertize based hack to support emacs22
 ;;
 ;; 0.8 - 2010-09-13 - 999
 ;;
@@ -100,8 +104,12 @@ from-current-window is not nil"
 	;; make it so that the huge number appears centered
 	(dotimes (i lines-before) (insert "\n"))
 	(dotimes (i margin-left)  (insert " "))
-	(insert label)))
-
+	;; insert the label, with a hack to support ancient emacs
+        (if (fboundp 'text-scale-increase)
+	    (insert label)
+	  (insert (propertize label 'face
+			      (list :height (* (* h switch-window-increase)
+					       (/ w h))))))))
     (set-window-buffer win buf)
     buf))
 
