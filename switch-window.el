@@ -108,8 +108,8 @@ from-current-window is not nil"
         (if (fboundp 'text-scale-increase)
 	    (insert label)
 	  (insert (propertize label 'face
-			      (list :height (* (* h switch-window-increase)
-					       (/ w h))))))))
+			      (list :height (* h switch-window-increase
+					       (if (> w h) 2 1))))))))
     (set-window-buffer win buf)
     buf))
 
