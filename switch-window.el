@@ -14,7 +14,7 @@
 ;; Install:
 ;;  (require 'switch-window)
 ;;
-;; It'll take over your C-x o binding.
+;; It'll take over your C-x o and C-x 0 binding.
 ;;
 ;; Changelog
 ;;
