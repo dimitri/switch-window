@@ -14,7 +14,7 @@
 ;; Install:
 ;;  (require 'switch-window)
 ;;
-;; It'll take over your C-x o binding.
+;; It'll take over your C-x o and C-x 0 binding.
 ;;
 ;; Changelog
 ;;
@@ -70,9 +70,9 @@
   "Return a list of one-letter strings to label current windows"
   (subseq
    (loop with layout = (split-string quail-keyboard-layout "")
-	 for row from 1 to 4
-	 nconc (loop for col from 1 to 10
-		     collect (nth (+ 1 (* 2 col) (* 30 row)) layout)))
+         for row from 1 to 4
+         nconc (loop for col from 1 to 10
+                     collect (nth (+ 1 (* 2 col) (* 30 row)) layout)))
    0 (length (switch-window-list))))
 
 (defun switch-window-label (num)
@@ -89,41 +89,50 @@ from-current-window is not nil"
 (defun switch-window-display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let* ((label (switch-window-label num))
-	 (buf (get-buffer-create
-	       (format " *%s: %s*" label (buffer-name (window-buffer win))))))
+         (buf (get-buffer-create
+               (format " *%s: %s*" label (buffer-name (window-buffer win))))))
     (with-current-buffer buf
       (let* ((w (window-width win))
-	     (h (window-body-height win))
-	     (increased-lines (/ (float h) switch-window-increase))
-	     (scale (if (> increased-lines 1) switch-window-increase h))
-	     (lines-before (/ increased-lines 2))
-	     (margin-left (/ w h) ))
-	;; increase to maximum switch-window-increase
-	(when (fboundp 'text-scale-increase)
-	  (text-scale-increase scale))
-	;; make it so that the huge number appears centered
-	(dotimes (i lines-before) (insert "\n"))
-	(dotimes (i margin-left)  (insert " "))
-	;; insert the label, with a hack to support ancient emacs
+             (h (window-body-height win))
+             (increased-lines (/ (float h) switch-window-increase))
+             (scale (if (> increased-lines 1) switch-window-increase h))
+             (lines-before (/ increased-lines 2))
+             (margin-left (/ w h) ))
+        ;; increase to maximum switch-window-increase
+        (when (fboundp 'text-scale-increase)
+          (text-scale-increase scale))
+        ;; make it so that the huge number appears centered
+        (dotimes (i lines-before) (insert "\n"))
+        (dotimes (i margin-left)  (insert " "))
+        ;; insert the label, with a hack to support ancient emacs
         (if (fboundp 'text-scale-increase)
-	    (insert label)
-	  (insert (propertize label 'face
-			      (list :height (* (* h switch-window-increase)
-					       (if (> w h) 2 1))))))))
+            (insert label)
+          (insert (propertize label 'face
+                              (list :height (* (* h switch-window-increase)
+                                               (if (> w h) 2 1))))))))
     (set-window-buffer win buf)
     buf))
 
-(defun switch-to-window-number (n)
-  "move to given window, target is the place of the window in (switch-window-list)"
+(defun apply-to-window-index (action n message-format)
+  "apply action to given window index, target is the place of the window in (switch-window-list)"
   (let ((c 1))
     (dolist (win (switch-window-list))
       (when (eq c n)
-	(select-window win))
+        (funcall action win))
       (setq c (1+ c)))
     (unless (minibuffer-window-active-p (selected-window))
-      (message "Moved to %S"
-	       (substring-no-properties
-		(buffer-name (window-buffer (selected-window))))))))
+      (message message-format
+               (substring-no-properties
+                (buffer-name (window-buffer (selected-window))))))))
+  
+(defun delete-other-window ()
+  "Display an overlay in each window showing a unique key, then
+ask user which window to delete"
+  (interactive)
+  (if (> (length (window-list)) 1)
+      (progn
+        (let ((index (prompt-for-selected-window "Delete window: ")))
+      (apply-to-window-index 'delete-window index "Deleted window %S")))))
 
 (defun switch-window ()
   "Display an overlay in each window showing a unique key, then
@@ -131,57 +140,61 @@ ask user for the window where move to"
   (interactive)
   (if (< (length (window-list)) 3)
       (call-interactively 'other-window)
+    (progn 
+    (let ((index (prompt-for-selected-window "Move to window: ")))
+    (apply-to-window-index 'select-window index "Moved to %S")))))
 
-    (let ((config (current-window-configuration))
-	  (num 1)
-	  (minibuffer-num nil)
-	  key buffers
-	  window-points
-	  dedicated-windows)
+(defun prompt-for-selected-window (prompt-message)
+  (let ((config (current-window-configuration))
+          (num 1)
+          (minibuffer-num nil)
+          key buffers
+          window-points
+          dedicated-windows)
 
       ;; arrange so that C-g will get back to previous window configuration
       (unwind-protect
-	  (progn
-	    ;; display big numbers to ease window selection
-	    (dolist (win (switch-window-list))
-	      (push (cons win (window-point win)) window-points)
-	      (when (window-dedicated-p win)
-		(push (cons win (window-dedicated-p win)) dedicated-windows)
-		(set-window-dedicated-p win nil))
-	      (if (minibuffer-window-active-p win)
-		  (setq minibuffer-num num)
-		(push (switch-window-display-number win num) buffers))
-	      (setq num (1+ num)))
+          (progn
+            ;; display big numbers to ease window selection
+            (dolist (win (switch-window-list))
+              (push (cons win (window-point win)) window-points)
+              (when (window-dedicated-p win)
+                (push (cons win (window-dedicated-p win)) dedicated-windows)
+                (set-window-dedicated-p win nil))
+              (if (minibuffer-window-active-p win)
+                  (setq minibuffer-num num)
+                (push (switch-window-display-number win num) buffers))
+              (setq num (1+ num)))
 
-	    (while (not key)
-	      (let ((input
-		     (event-basic-type
-		      (read-event
-		       (if minibuffer-num
-			   (format "Move to window [minibuffer is %s]: "
-				   (switch-window-label minibuffer-num))
-			 "Move to window: ")
-		       nil switch-window-timeout))))
+            (while (not key)
+              (let ((input
+                     (event-basic-type
+                      (read-event
+                       (if minibuffer-num
+                           (format "Move to window [minibuffer is %s]: "
+                                   (switch-window-label minibuffer-num))
+                         prompt-message)
+                       nil switch-window-timeout))))
 
-		(if (or (null input) (eq input 'return))
-		    (keyboard-quit) ; timeout or RET
-		  (unless (symbolp input)
-		    (let* ((wchars (mapcar 'string-to-char
-					   (switch-window-enumerate)))
-			   (pos (position input wchars)))
-		      (if pos
-			  (setq key (1+ pos))
-			(keyboard-quit))))))))
+                (if (or (null input) (eq input 'return))
+                    (keyboard-quit) ; timeout or RET
+                  (unless (symbolp input)
+                    (let* ((wchars (mapcar 'string-to-char
+                                           (switch-window-enumerate)))
+                           (pos (position input wchars)))
+                      (if pos
+                          (setq key (1+ pos))
+                        (keyboard-quit))))))))
 
-	;; get those huge numbers away
-	(mapc 'kill-buffer buffers)
-	(set-window-configuration config)
-	(dolist (w window-points)
-	  (set-window-point (car w) (cdr w)))
-	(dolist (w dedicated-windows)
-	  (set-window-dedicated-p (car w) (cdr w)))
-	(when key
-	  (switch-to-window-number key))))))
+        ;; get those huge numbers away
+        (mapc 'kill-buffer buffers)
+        (set-window-configuration config)
+        (dolist (w window-points)
+          (set-window-point (car w) (cdr w)))
+        (dolist (w dedicated-windows)
+          (set-window-dedicated-p (car w) (cdr w))))
+      key))
 
 (global-set-key (kbd "C-x o") 'switch-window)
+(global-set-key (kbd "C-x 0") 'delete-other-window)
 (provide 'switch-window)
