@@ -4,7 +4,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://www.emacswiki.org/emacs/switch-window.el
-;; Version: 0.9
+;; Version: 0.10
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -17,6 +17,10 @@
 ;; It'll take over your C-x o binding.
 ;;
 ;; Changelog
+;;
+;; 0.10 - 2011-06-19
+;;
+;;  - implement M-x delete-other-window (thanks developernotes on github)
 ;;
 ;; 0.9 - 2010-11-11 - emacs22 called, it wants some support
 ;;
