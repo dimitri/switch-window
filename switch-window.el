@@ -113,17 +113,27 @@ from-current-window is not nil"
     (set-window-buffer win buf)
     buf))
 
-(defun switch-to-window-number (n)
-  "move to given window, target is the place of the window in (switch-window-list)"
+(defun apply-to-window-index (action n message-format)
+  "apply action to given window index, target is the place of the window in (switch-window-list)"
   (let ((c 1))
     (dolist (win (switch-window-list))
       (when (eq c n)
-	(select-window win))
+	(funcall action win))
       (setq c (1+ c)))
     (unless (minibuffer-window-active-p (selected-window))
-      (message "Moved to %S"
+      (message message-format
 	       (substring-no-properties
 		(buffer-name (window-buffer (selected-window))))))))
+
+
+(defun delete-other-window ()
+  "Display an overlay in each window showing a unique key, then
+ask user which window to delete"
+  (interactive)
+  (if (> (length (window-list)) 1)
+      (progn
+        (let ((index (prompt-for-selected-window "Delete window: ")))
+          (apply-to-window-index 'delete-window index "")))))
 
 (defun switch-window ()
   "Display an overlay in each window showing a unique key, then
@@ -131,7 +141,13 @@ ask user for the window where move to"
   (interactive)
   (if (< (length (window-list)) 3)
       (call-interactively 'other-window)
+    (progn
+      (let ((index (prompt-for-selected-window "Move to window: ")))
+        (apply-to-window-index 'select-window index "Moved to %S")))))
 
+(defun prompt-for-selected-window (prompt-message)
+  "Display an overlay in each window showing a unique key, then
+ask user for the window to select"
     (let ((config (current-window-configuration))
 	  (num 1)
 	  (minibuffer-num nil)
@@ -160,7 +176,7 @@ ask user for the window where move to"
 		       (if minibuffer-num
 			   (format "Move to window [minibuffer is %s]: "
 				   (switch-window-label minibuffer-num))
-			 "Move to window: ")
+			 prompt-message)
 		       nil switch-window-timeout))))
 
 		(if (or (null input) (eq input 'return))
@@ -179,9 +195,8 @@ ask user for the window where move to"
 	(dolist (w window-points)
 	  (set-window-point (car w) (cdr w)))
 	(dolist (w dedicated-windows)
-	  (set-window-dedicated-p (car w) (cdr w)))
-	(when key
-	  (switch-to-window-number key))))))
+	  (set-window-dedicated-p (car w) (cdr w))))
+      key))
 
 (global-set-key (kbd "C-x o") 'switch-window)
 (provide 'switch-window)
