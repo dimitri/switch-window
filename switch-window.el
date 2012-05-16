@@ -1,4 +1,4 @@
-;;; dim-switch-window.el --- A *visual* way to choose a window to switch to
+;;; switch-window.el --- A *visual* way to choose a window to switch to
 ;;
 ;; Copyright (C) 2010 Dimitri Fontaine
 ;;
@@ -219,3 +219,4 @@ ask user for the window to select"
 
 (global-set-key (kbd "C-x o") 'switch-window)
 (provide 'switch-window)
+;;; switch-window.el ends here
