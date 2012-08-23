@@ -3,7 +3,7 @@
 ;; Copyright (C) 2010 Dimitri Fontaine
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
-;; URL: http://www.emacswiki.org/emacs/switch-window.el
+;; URL: http://tapoueh.org/projects.html
 ;; Version: 0.10
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
