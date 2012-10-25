@@ -73,7 +73,7 @@
 (defcustom switch-window-shortcut-style 'quail
   "Use either keyboard layout or alphabet shortcut style"
   :type '(choice (const :tag "Alphabet" 'alphabet)
-		 (const :tag "Keyboard Layout" 'quail))
+                 (const :tag "Keyboard Layout" 'quail)
                  (const :tag "Qwerty Homekeys Layout" 'qwerty))
   :group 'switch-window)
 
