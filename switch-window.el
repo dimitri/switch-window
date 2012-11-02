@@ -73,7 +73,12 @@
 (defcustom switch-window-shortcut-style 'quail
   "Use either keyboard layout or alphabet shortcut style"
   :type '(choice (const :tag "Alphabet" 'alphabet)
-		 (const :tag "Keyboard Layout" 'quail))
+                 (const :tag "Keyboard Layout" 'quail)
+                 (const :tag "Qwerty Homekeys Layout" 'qwerty))
+  :group 'switch-window)
+
+(defcustom switch-window-qwerty-shortcuts '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
+  "The list of characters used when switch-window-shortcut-style is 'qwerty'"
   :group 'switch-window)
 
 (defun switch-window-list-keyboard-keys ()
@@ -85,10 +90,12 @@
 
 (defun switch-window-list-keys ()
   "Return a list of keys to use depending on `switch-window-shortcut-style'"
-  (if (eq switch-window-shortcut-style 'alphabet)
-      (loop for i from 0 to 25
-	    collect (byte-to-string (+ (string-to-char "a") i)))
-    (switch-window-list-keyboard-keys)))
+  (cond ((eq switch-window-shortcut-style 'qwerty)
+         switch-window-qwerty-shortcuts)
+        ((eq switch-window-shortcut-style 'alphabet)
+         (loop for i from 0 to 25
+               collect (byte-to-string (+ (string-to-char "a") i))))
+        (t (switch-window-list-keyboard-keys))))
 
 (defun switch-window-enumerate ()
   "Return a list of one-letter strings to label current windows"
