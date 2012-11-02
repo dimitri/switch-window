@@ -77,8 +77,10 @@
                  (const :tag "Qwerty Homekeys Layout" 'qwerty))
   :group 'switch-window)
 
-(defcustom switch-window-qwerty-shortcuts '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
+(defcustom switch-window-qwerty-shortcuts
+  '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
   "The list of characters used when switch-window-shortcut-style is 'qwerty'"
+  :type 'list
   :group 'switch-window)
 
 (defun switch-window-list-keyboard-keys ()
