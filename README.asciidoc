@@ -2,7 +2,7 @@
 
 == Window switching, the visual way.
 
-See http://tapoueh.org/projects.html#sec19, then install the
+See http://tapoueh.org/emacs/switch-window.html, then install the
 +switch-window.el+ file here (with http://github.com/dimitri/el-get it's
 even easier).
 
