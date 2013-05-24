@@ -154,6 +154,7 @@ from-current-window is not nil"
 		(buffer-name (window-buffer (selected-window))))))))
 
 
+;;;###autoload
 (defun delete-other-window ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to delete"
@@ -163,6 +164,7 @@ ask user which window to delete"
         (let ((index (prompt-for-selected-window "Delete window: ")))
           (apply-to-window-index 'delete-window index "")))))
 
+;;;###autoload
 (defun switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
