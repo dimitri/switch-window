@@ -14,7 +14,8 @@
 ;; Install:
 ;;  (require 'switch-window)
 ;;
-;; It'll take over your C-x o binding.
+;; Rebind your C-x o key:
+;;  (global-set-key (kbd "C-x o") 'switch-window)
 ;;
 ;; Changelog
 ;;
@@ -228,6 +229,5 @@ ask user for the window to select"
 	  (set-window-dedicated-p (car w) (cdr w))))
       key))
 
-(global-set-key (kbd "C-x o") 'switch-window)
 (provide 'switch-window)
 ;;; switch-window.el ends here
