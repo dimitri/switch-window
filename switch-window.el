@@ -14,7 +14,8 @@
 ;; Install:
 ;;  (require 'switch-window)
 ;;
-;; It'll take over your C-x o binding.
+;; Rebind your C-x o key:
+;;  (global-set-key (kbd "C-x o") 'switch-window)
 ;;
 ;; Changelog
 ;;
@@ -154,6 +155,7 @@ from-current-window is not nil"
 		(buffer-name (window-buffer (selected-window))))))))
 
 
+;;;###autoload
 (defun delete-other-window ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to delete"
@@ -163,6 +165,7 @@ ask user which window to delete"
         (let ((index (prompt-for-selected-window "Delete window: ")))
           (apply-to-window-index 'delete-window index "")))))
 
+;;;###autoload
 (defun switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
@@ -226,6 +229,5 @@ ask user for the window to select"
 	  (set-window-dedicated-p (car w) (cdr w))))
       key))
 
-(global-set-key (kbd "C-x o") 'switch-window)
 (provide 'switch-window)
 ;;; switch-window.el ends here

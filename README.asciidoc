@@ -3,12 +3,15 @@
 == Window switching, the visual way.
 
 Check out this http://tapoueh.org/emacs/switch-window.html[screenshot], then install the
-+switch-window.el+ file here (with http://github.com/dimitri/el-get[El-Get] it's
-even easier).
++switch-window.el+ file here (with http://github.com/dimitri/el-get[El-Get] or
+https://melpa.milkbox.net[MELPA] it's even easier).
 
-== Manual install
+== Installation
 
-Download the file or +git clone git://github.com/dimitri/el-get.git+ then do
-the following, which will steal your +C-x o+ key:
+Rebind your +C-x o+ key:
+
+  (global-set-key (kbd "C-x o") 'switch-window)
+
+If you do not use El-Get or ELPA, you need to require the package first:
 
   (require 'switch-window)
