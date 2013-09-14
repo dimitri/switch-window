@@ -143,17 +143,17 @@ from-current-window is not nil"
     buf))
 
 (defun apply-to-window-index (action n message-format)
-  "apply action to given window index, target is the place of the window in (switch-window-list)"
-  (let ((c 1))
-    (dolist (win (switch-window-list))
-      (when (eq c n)
-	(funcall action win))
-      (setq c (1+ c)))
-    (unless (minibuffer-window-active-p (selected-window))
-      (message message-format
-	       (substring-no-properties
-		(buffer-name (window-buffer (selected-window))))))))
-
+  "apply action to given window index, target is the place of the
+   window in (switch-window-list)"
+  (loop for c from 1
+	for win in (switch-window-list)
+	until (= c n)
+	finally (funcall action win))
+  ;; be verbose about it
+  (unless (minibuffer-window-active-p (selected-window))
+    (message message-format
+	     (substring-no-properties
+	      (buffer-name (window-buffer (selected-window)))))))
 
 ;;;###autoload
 (defun delete-other-window ()
