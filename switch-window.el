@@ -4,7 +4,7 @@
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
 ;; URL: http://tapoueh.org/emacs/switch-window.html
-;; Version: 0.10
+;; Version: 0.11
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -18,6 +18,11 @@
 ;;  (global-set-key (kbd "C-x o") 'switch-window)
 ;;
 ;; Changelog
+;;
+;; 0.11 - 2013-09-14
+;;
+;;  - restore point to end-of-buffer for windows where it was the case after
+;;    switching, fixing an anoying bug.
 ;;
 ;; 0.10 - 2011-06-19
 ;;
@@ -155,6 +160,19 @@ from-current-window is not nil"
 	     (substring-no-properties
 	      (buffer-name (window-buffer (selected-window)))))))
 
+(defun switch-window-list-eobp ()
+  "Return a list of all the windows where `eobp' is currently
+   true so that we can restore that important property (think
+   auto scrolling) after switching."
+  (loop for win in (switch-window-list)
+	when (with-current-buffer (window-buffer win) (eobp))
+	collect win))
+
+(defun switch-window-restore-eobp (eobp-window-list)
+  "For each window in EOBP-WINDOW-LIST move the point to end of buffer."
+  (loop for win in eobp-window-list
+	do (with-current-buffer (window-buffer win) (end-of-buffer))))
+
 ;;;###autoload
 (defun delete-other-window ()
   "Display an overlay in each window showing a unique key, then
@@ -173,8 +191,10 @@ ask user for the window where move to"
   (if (< (length (window-list)) 3)
       (call-interactively 'other-window)
     (progn
-      (let ((index (prompt-for-selected-window "Move to window: ")))
-        (apply-to-window-index 'select-window index "Moved to %S")))))
+      (let ((index (prompt-for-selected-window "Move to window: "))
+	    (eobps (switch-window-list-eobp)))
+        (apply-to-window-index 'select-window index "Moved to %S")
+	(switch-window-restore-eobp eobps)))))
 
 (defun prompt-for-selected-window (prompt-message)
   "Display an overlay in each window showing a unique key, then
@@ -182,6 +202,7 @@ ask user for the window to select"
     (let ((config (current-window-configuration))
 	  (num 1)
 	  (minibuffer-num nil)
+	  (eobps (switch-window-list-eobp))
 	  key buffers
 	  window-points
 	  dedicated-windows)
@@ -211,14 +232,18 @@ ask user for the window to select"
 		       nil switch-window-timeout))))
 
 		(if (or (null input) (eq input 'return))
-		    (keyboard-quit) ; timeout or RET
+		    (progn
+		      (switch-window-restore-eobp eobps)
+		      (keyboard-quit))	; timeout or RET
 		  (unless (symbolp input)
 		    (let* ((wchars (mapcar 'string-to-char
 					   (switch-window-enumerate)))
 			   (pos (position input wchars)))
 		      (if pos
 			  (setq key (1+ pos))
-			(keyboard-quit))))))))
+			(progn
+			  (switch-window-restore-eobp eobps)
+			  (keyboard-quit)))))))))
 
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
