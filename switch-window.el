@@ -71,6 +71,12 @@
   :type 'integer
   :group 'switch-window)
 
+(defcustom switch-window-threshold 2
+  "Only active switch-window after this many windows open"
+  :type 'integer
+  :group 'switch-window)
+
+
 (defcustom switch-window-relative nil
   "Control the ordering of windows, when true this depends on current-window"
   :type 'boolean
@@ -188,7 +194,7 @@ ask user which window to delete"
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
   (interactive)
-  (if (< (length (window-list)) 3)
+  (if (<= (length (window-list)) switch-window-threshold)
       (call-interactively 'other-window)
     (progn
       (let ((index (prompt-for-selected-window "Move to window: "))
