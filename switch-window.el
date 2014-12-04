@@ -208,6 +208,7 @@ ask user for the window to select"
     (let ((config (current-window-configuration))
 	  (num 1)
 	  (minibuffer-num nil)
+	  (original-cursor cursor-type)
 	  (eobps (switch-window-list-eobp))
 	  key buffers
 	  window-points
@@ -216,6 +217,8 @@ ask user for the window to select"
       ;; arrange so that C-g will get back to previous window configuration
       (unwind-protect
 	  (progn
+	    ;; hide cursor during window selection process
+	    (setq-default cursor-type nil)
 	    ;; display big numbers to ease window selection
 	    (dolist (win (switch-window-list))
 	      (push (cons win (window-point win)) window-points)
@@ -251,6 +254,8 @@ ask user for the window to select"
 			  (switch-window-restore-eobp eobps)
 			  (keyboard-quit)))))))))
 
+	;; restore original cursor
+	(setq-default cursor-type original-cursor)
 	;; get those huge numbers away
 	(mapc 'kill-buffer buffers)
 	(set-window-configuration config)
