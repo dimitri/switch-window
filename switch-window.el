@@ -295,6 +295,7 @@ ask user for the window to select"
         (minibuffer-num nil)
         (original-cursor (default-value 'cursor-type))
         (eobps (switch-window--list-eobp))
+        (window-configuration-change-hook nil)
         key buffers
         window-points
         dedicated-windows)
