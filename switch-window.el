@@ -208,7 +208,7 @@ ask user for the window to select"
     (let ((config (current-window-configuration))
 	  (num 1)
 	  (minibuffer-num nil)
-	  (original-cursor cursor-type)
+	  (original-cursor (default-value 'cursor-type))
 	  (eobps (switch-window-list-eobp))
 	  key buffers
 	  window-points
