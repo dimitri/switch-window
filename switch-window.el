@@ -97,10 +97,10 @@
 
 (defun switch-window-list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
-   (loop with layout = (split-string quail-keyboard-layout "")
+   (remove "0" (loop with layout = (split-string quail-keyboard-layout "")
 	 for row from 1 to 4
 	 nconc (loop for col from 1 to 10
-		     collect (nth (+ 1 (* 2 col) (* 30 row)) layout))))
+		     collect (nth (+ 1 (* 2 col) (* 30 row)) layout)))))
 
 (defun switch-window-list-keys ()
   "Return a list of keys to use depending on `switch-window-shortcut-style'"
@@ -236,7 +236,8 @@ ask user for the window to select"
 		      (read-event
 		       (if minibuffer-num
 			   (format "Move to window [minibuffer is %s]: "
-				   (switch-window-label minibuffer-num))
+				   ;; (switch-window-label minibuffer-num))
+                 "0")
 			 prompt-message)
 		       nil switch-window-timeout))))
 
@@ -245,11 +246,13 @@ ask user for the window to select"
 		      (switch-window-restore-eobp eobps)
 		      (keyboard-quit))	; timeout or RET
 		  (unless (symbolp input)
-		    (let* ((wchars (mapcar 'string-to-char
+		    (if (and minibuffer-num (char-equal input (string-to-char "0")))
+            (setq key minibuffer-num)
+            (let* ((wchars (mapcar 'string-to-char
 					   (switch-window-enumerate)))
 			   (pos (position input wchars)))
 		      (if pos
-			  (setq key (1+ pos))
+			  (setq key (1+ pos)))
 			(progn
 			  (switch-window-restore-eobp eobps)
 			  (keyboard-quit)))))))))
