@@ -95,6 +95,16 @@
   :type 'list
   :group 'switch-window)
 
+(defcustom switch-window-minibuffer-shortcut nil
+  "Whether to customize the minibuffer shortcut."
+  :type 'boolean
+  :group 'switch-window)
+
+(defcustom switch-window-minibuffer-shortcut-char "0"
+  "The characters used to switch to the minibuffer."
+  :type 'character
+  :group 'switch-window)
+
 (defun switch-window-list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
    (loop with layout = (split-string quail-keyboard-layout "")
@@ -113,7 +123,13 @@
 
 (defun switch-window-enumerate ()
   "Return a list of one-letter strings to label current windows"
-  (loop for w being the windows for x in (switch-window-list-keys) collect x))
+  (loop for w in (switch-window-list)
+        for x in (switch-window-list-keys)
+        collect (progn
+                  (if (and switch-window-minibuffer-shortcut
+                           (minibuffer-window-active-p w))
+                      (char-to-string switch-window-minibuffer-shortcut-char)
+                    x))))
 
 (defun switch-window-label (num)
   "Return the label to use for a given window number"
@@ -236,7 +252,9 @@ ask user for the window to select"
 		      (read-event
 		       (if minibuffer-num
 			   (format "Move to window [minibuffer is %s]: "
-				   (switch-window-label minibuffer-num))
+                 (if switch-window-minibuffer-shortcut
+                     (char-to-string switch-window-minibuffer-shortcut-char)
+                   (switch-window-label minibuffer-num)))
 			 prompt-message)
 		       nil switch-window-timeout))))
 
