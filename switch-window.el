@@ -96,13 +96,11 @@
   :group 'switch-window)
 
 (defcustom switch-window-minibuffer-shortcut nil
-  "Whether to customize the minibuffer shortcut."
-  :type 'boolean
-  :group 'switch-window)
-
-(defcustom switch-window-minibuffer-shortcut-char "0"
-  "The characters used to switch to the minibuffer."
-  :type 'character
+  "Whether to customize the minibuffer shortcut.
+Default to no customisation (nil), which will make the minibuffer take whatever the last short is.
+If a character is specified it will always use that key for the minibuffer shortcut."
+  :type '(choice (const :tag "Off" nil)
+                 (character "m"))
   :group 'switch-window)
 
 (defun switch-window-list-keyboard-keys ()
@@ -128,7 +126,7 @@
         collect (progn
                   (if (and switch-window-minibuffer-shortcut
                            (minibuffer-window-active-p w))
-                      (char-to-string switch-window-minibuffer-shortcut-char)
+                      (char-to-string switch-window-minibuffer-shortcut)
                     x))))
 
 (defun switch-window-label (num)
@@ -253,7 +251,7 @@ ask user for the window to select"
 		       (if minibuffer-num
 			   (format "Move to window [minibuffer is %s]: "
                  (if switch-window-minibuffer-shortcut
-                     (char-to-string switch-window-minibuffer-shortcut-char)
+                     (char-to-string switch-window-minibuffer-shortcut)
                    (switch-window-label minibuffer-num)))
 			 prompt-message)
 		       nil switch-window-timeout))))
