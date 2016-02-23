@@ -8,6 +8,7 @@
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
+;; Package-Requires: ((cl-lib "0.5"))
 ;;
 ;; This file is NOT part of GNU Emacs.
 ;;
@@ -55,7 +56,7 @@
 ;;
 
 ;; We use loop and subseq
-(require 'cl)
+(require 'cl-lib)
 (require 'quail)
 
 (defgroup switch-window nil "switch-window customization group"
@@ -97,9 +98,9 @@
 
 (defun switch-window-list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
-  (loop with layout = (split-string quail-keyboard-layout "")
+  (cl-loop with layout = (split-string quail-keyboard-layout "")
         for row from 1 to 4
-        nconc (loop for col from 1 to 10
+        nconc (cl-loop for col from 1 to 10
                     collect (nth (+ 1 (* 2 col) (* 30 row)) layout))))
 
 (defun switch-window-list-keys ()
@@ -107,13 +108,13 @@
   (cond ((eq switch-window-shortcut-style 'qwerty)
          switch-window-qwerty-shortcuts)
         ((eq switch-window-shortcut-style 'alphabet)
-         (loop for i from 0 to 25
+         (cl-loop for i from 0 to 25
                collect (byte-to-string (+ (string-to-char "a") i))))
         (t (switch-window-list-keyboard-keys))))
 
 (defun switch-window-enumerate ()
   "Return a list of one-letter strings to label current windows"
-  (loop for w being the windows for x in (switch-window-list-keys) collect x))
+  (cl-loop for w being the windows for x in (switch-window-list-keys) collect x))
 
 (defun switch-window-label (num)
   "Return the label to use for a given window number"
@@ -156,7 +157,7 @@ from-current-window is not nil"
 (defun apply-to-window-index (action n message-format)
   "apply action to given window index, target is the place of the
    window in (switch-window-list)"
-  (loop for c from 1
+  (cl-loop for c from 1
         for win in (switch-window-list)
         until (= c n)
         finally (funcall action win))
@@ -170,13 +171,13 @@ from-current-window is not nil"
   "Return a list of all the windows where `eobp' is currently
    true so that we can restore that important property (think
    auto scrolling) after switching."
-  (loop for win in (switch-window-list)
+  (cl-loop for win in (switch-window-list)
         when (with-current-buffer (window-buffer win) (eobp))
         collect win))
 
 (defun switch-window-restore-eobp (eobp-window-list)
   "For each window in EOBP-WINDOW-LIST move the point to end of buffer."
-  (loop for win in eobp-window-list
+  (cl-loop for win in eobp-window-list
         do (with-current-buffer (window-buffer win) (end-of-buffer))))
 
 ;;;###autoload
