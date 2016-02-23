@@ -14,13 +14,15 @@
 ;;
 ;; This file is NOT part of GNU Emacs.
 ;;
-;; Install:
-;;  (require 'switch-window)
+
+;;; Commentary:
 ;;
-;; Rebind your C-x o key:
-;;  (global-set-key (kbd "C-x o") 'switch-window)
+;; * Usage
 ;;
-;; Changelog
+;;    (require 'switch-window)
+;;    (global-set-key (kbd "C-x o") 'switch-window)
+;;
+;; * Changelog
 ;;
 ;; 0.11 - 2013-09-14
 ;;
@@ -57,8 +59,8 @@
 ;;  - dim:switch-window-increase is now a maximum value
 ;;
 
-;; We use loop and subseq
-(require 'cl-lib)
+;;; Code:
+(require 'cl-lib) ; We use cl-loop and cl-subseq
 (require 'quail)
 
 (defgroup switch-window nil "switch-window customization group"
