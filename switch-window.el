@@ -138,24 +138,15 @@ from-current-window is not nil"
          (buf (get-buffer-create
                (format " *%s: %s*" label (buffer-name (window-buffer win))))))
     (with-current-buffer buf
-      (let* ((w (window-width win))
-             (h (window-body-height win))
-             (increased-lines (/ (float h) switch-window-increase))
-             (scale (if (> increased-lines 1) switch-window-increase h))
-             (lines-before (/ increased-lines 2))
-             (margin-left (/ w h) ))
-        ;; increase to maximum switch-window-increase
-        (when (fboundp 'text-scale-increase)
-          (text-scale-increase scale))
-        ;; make it so that the huge number appears centered
-        (dotimes (i lines-before) (insert "\n"))
-        (dotimes (i margin-left)  (insert " "))
-        ;; insert the label, with a hack to support ancient emacs
-        (if (fboundp 'text-scale-increase)
-            (insert label)
-          (insert (propertize label 'face
-                              (list :height (* (* h switch-window-increase)
-                                               (if (> w h) 2 1))))))))
+      ;; increase to maximum switch-window-increase
+      (when (fboundp 'text-scale-increase)
+        (text-scale-increase switch-window-increase))
+      ;; insert the label, with a hack to support ancient emacs
+      (if (fboundp 'text-scale-increase)
+          (insert label)
+        (insert (propertize label 'face
+                            (list :height (* (* h switch-window-increase)
+                                             (if (> w h) 2 1)))))))
     (set-window-buffer win buf)
     buf))
 
