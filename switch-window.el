@@ -67,103 +67,96 @@
   "switch-window customization group"
   :group 'convenience)
 
-(defcustom switchw-increase 12
+(defcustom switch-window-increase 12
   "How much to increase text size in the window numbering, maximum"
   :type 'integer
   :group 'switch-window)
 
-(defcustom switchw-timeout 5
+(defcustom switch-window-timeout 5
   "After this many seconds, cancel the window switching"
   :type 'integer
   :group 'switch-window)
 
-(defcustom switchw-threshold 2
+(defcustom switch-window-threshold 2
   "Only active switch-window after this many windows open"
   :type 'integer
   :group 'switch-window)
 
 
-(defcustom switchw-relative nil
+(defcustom switch-window-relative nil
   "Control the ordering of windows, when true this depends on current-window"
   :type 'boolean
   :group 'switch-window)
 
-(defcustom switchw-shortcut-style 'quail
+(defcustom switch-window-shortcut-style 'quail
   "Use either keyboard layout or alphabet shortcut style"
   :type '(choice (const :tag "Alphabet" 'alphabet)
                  (const :tag "Keyboard Layout" 'quail)
                  (const :tag "Qwerty Homekeys Layout" 'qwerty))
   :group 'switch-window)
 
-(defcustom switchw-qwerty-shortcuts
+(defcustom switch-window-qwerty-shortcuts
   '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
-  "The list of characters used when switchw-shortcut-style is 'qwerty'"
+  "The list of characters used when switch-window-shortcut-style is 'qwerty'"
   :type 'list
   :group 'switch-window)
 
-(define-obsolete-variable-alias 'switch-window-increase 'switchw-increase)
-(define-obsolete-variable-alias 'switch-window-timeout 'switchw-timeout)
-(define-obsolete-variable-alias 'switch-window-threshold 'switchw-threshold)
-(define-obsolete-variable-alias 'switch-window-relative 'switchw-relative)
-(define-obsolete-variable-alias 'switch-window-shortcut-style 'switchw-shortcut-style)
-(define-obsolete-variable-alias 'switch-window-qwerty-shortcuts 'switchw-qwerty-shortcuts)
-
-(defun switchw--list-keyboard-keys ()
+(defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
   (cl-loop with layout = (split-string quail-keyboard-layout "")
            for row from 1 to 4
            nconc (cl-loop for col from 1 to 10
                           collect (nth (+ 1 (* 2 col) (* 30 row)) layout))))
 
-(defun switchw--list-keys ()
-  "Return a list of keys to use depending on `switchw-shortcut-style'"
-  (cond ((eq switchw-shortcut-style 'qwerty)
-         switchw-qwerty-shortcuts)
-        ((eq switchw-shortcut-style 'alphabet)
+(defun switch-window--list-keys ()
+  "Return a list of keys to use depending on `switch-window-shortcut-style'"
+  (cond ((eq switch-window-shortcut-style 'qwerty)
+         switch-window-qwerty-shortcuts)
+        ((eq switch-window-shortcut-style 'alphabet)
          (cl-loop for i from 0 to 25
                   collect (byte-to-string (+ (string-to-char "a") i))))
-        (t (switchw--list-keyboard-keys))))
+        (t (switch-window--list-keyboard-keys))))
 
-(defun switchw--enumerate ()
+(defun switch-window--enumerate ()
   "Return a list of one-letter strings to label current windows"
-  (cl-loop for w being the windows for x in (switchw--list-keys) collect x))
+  (cl-loop for w being the windows for x in (switch-window--list-keys) collect x))
 
-(defun switchw--label (num)
+(defun switch-window--label (num)
   "Return the label to use for a given window number"
-  (nth (- num 1) (switchw--enumerate)))
+  (nth (- num 1) (switch-window--enumerate)))
 
-(defun switchw--list (&optional from-current-window)
+(defun switch-window--list (&optional from-current-window)
   "list windows for current frame, starting at top left unless
 from-current-window is not nil"
-  (if (or from-current-window switchw-relative)
+  (if (or from-current-window switch-window-relative)
       (window-list nil nil)
     (window-list nil nil (frame-first-window))))
 
-(defun switchw--display-number (win num)
+(defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
-  (let* ((label (switchw--label num))
+  (let* ((label (switch-window--label num))
          (buf (get-buffer-create
                (format " *%s: %s*" label (buffer-name (window-buffer win))))))
     (with-current-buffer buf
       (let ((w (window-width win))
             (h (window-body-height win)))
-        ;; increase to maximum switchw-increase
+        ;; increase to maximum switch-window-increase
         (when (fboundp 'text-scale-increase)
-          (text-scale-increase switchw-increase))
+          (text-scale-increase switch-window-increase))
         ;; insert the label, with a hack to support ancient emacs
         (if (fboundp 'text-scale-increase)
             (insert label)
           (insert (propertize label 'face
-                              (list :height (* (* h switchw-increase)
+                              (list :height (* (* h switch-window-increase)
                                                (if (> w h) 2 1)))))))
       (set-window-buffer win buf)
       buf)))
 
-(defun switchw--apply-to-window-index (action n message-format)
+(defun switch-window--apply-to-window-index (action n message-format)
   "apply action to given window index, target is the place of the
-   window in (switchw--list)"
+   window in (switch-window--list)"
   (cl-loop for c from 1
-           for win in (switchw--list)
+           for win in (switch-window--list)
            until (= c n)
            finally (funcall action win))
   ;; be verbose about it
@@ -172,15 +165,15 @@ from-current-window is not nil"
              (substring-no-properties
               (buffer-name (window-buffer (selected-window)))))))
 
-(defun switchw--list-eobp ()
+(defun switch-window--list-eobp ()
   "Return a list of all the windows where `eobp' is currently
    true so that we can restore that important property (think
    auto scrolling) after switching."
-  (cl-loop for win in (switchw--list)
+  (cl-loop for win in (switch-window--list)
            when (with-current-buffer (window-buffer win) (eobp))
            collect win))
 
-(defun switchw--restore-eobp (eobp-window-list)
+(defun switch-window--restore-eobp (eobp-window-list)
   "For each window in EOBP-WINDOW-LIST move the point to end of buffer."
   (cl-loop for win in eobp-window-list
            do (with-current-buffer
@@ -188,55 +181,53 @@ from-current-window is not nil"
                 (goto-char (point-max)))))
 
 ;;;###autoload
-(defun switchw-delete-window ()
+(defun switch-window-delete-window ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to delete"
   (interactive)
   (if (> (length (window-list)) 1)
       (progn
-        (let ((index (switchw--prompt "Delete window: ")))
-          (switchw--apply-to-window-index 'delete-window index "")))))
+        (let ((index (switch-window--prompt "Delete window: ")))
+          (switch-window--apply-to-window-index 'delete-window index "")))))
 
-(defalias 'switch-to-window 'switchw-delete-window)
+(define-obsolete-variable-alias 'switch-to-window 'switch-window-delete-window)
 
 ;;;###autoload
-(defun switchw-maximize-window ()
+(defun switch-window-maximize-window ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to maximize"
   (interactive)
-  (if (<= (length (window-list)) switchw-threshold)
+  (if (<= (length (window-list)) switch-window-threshold)
       (call-interactively 'delete-other-windows)
     (progn
-      (let ((index (switchw--prompt "Maximize window: "))
-            (eobps (switchw--list-eobp)))
-        (switchw--apply-to-window-index
+      (let ((index (switch-window--prompt "Maximize window: "))
+            (eobps (switch-window--list-eobp)))
+        (switch-window--apply-to-window-index
          'select-window index "Maximize %S")
-        (switchw--restore-eobp eobps))
+        (switch-window--restore-eobp eobps))
       (delete-other-windows))))
 
 ;;;###autoload
-(defun switchw ()
+(defun switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
   (interactive)
-  (if (<= (length (window-list)) switchw-threshold)
+  (if (<= (length (window-list)) switch-window-threshold)
       (call-interactively 'other-window)
     (progn
-      (let ((index (switchw--prompt "Move to window: "))
-            (eobps (switchw--list-eobp)))
-        (switchw--apply-to-window-index 'select-window index "Moved to %S")
-        (switchw--restore-eobp eobps)))))
+      (let ((index (switch-window--prompt "Move to window: "))
+            (eobps (switch-window--list-eobp)))
+        (switch-window--apply-to-window-index 'select-window index "Moved to %S")
+        (switch-window--restore-eobp eobps)))))
 
-(defalias 'switch-window 'switchw)
-
-(defun switchw--prompt (prompt-message)
+(defun switch-window--prompt (prompt-message)
   "Display an overlay in each window showing a unique key, then
 ask user for the window to select"
   (let ((config (current-window-configuration))
         (num 1)
         (minibuffer-num nil)
         (original-cursor (default-value 'cursor-type))
-        (eobps (switchw--list-eobp))
+        (eobps (switch-window--list-eobp))
         key buffers
         window-points
         dedicated-windows)
@@ -247,14 +238,14 @@ ask user for the window to select"
           ;; hide cursor during window selection process
           (setq-default cursor-type nil)
           ;; display big numbers to ease window selection
-          (dolist (win (switchw--list))
+          (dolist (win (switch-window--list))
             (push (cons win (window-point win)) window-points)
             (when (window-dedicated-p win)
               (push (cons win (window-dedicated-p win)) dedicated-windows)
               (set-window-dedicated-p win nil))
             (if (minibuffer-window-active-p win)
                 (setq minibuffer-num num)
-              (push (switchw--display-number win num) buffers))
+              (push (switch-window--display-number win num) buffers))
             (setq num (1+ num)))
 
           (while (not key)
@@ -263,22 +254,22 @@ ask user for the window to select"
                     (read-event
                      (if minibuffer-num
                          (format "Move to window [minibuffer is %s]: "
-                                 (switchw--label minibuffer-num))
+                                 (switch-window--label minibuffer-num))
                        prompt-message)
-                     nil switchw-timeout))))
+                     nil switch-window-timeout))))
 
               (if (or (null input) (eq input 'return))
                   (progn
-                    (switchw--restore-eobp eobps)
+                    (switch-window--restore-eobp eobps)
                     (keyboard-quit))	; timeout or RET
                 (unless (symbolp input)
                   (let* ((wchars (mapcar 'string-to-char
-                                         (switchw--enumerate)))
+                                         (switch-window--enumerate)))
                          (pos (cl-position input wchars)))
                     (if pos
                         (setq key (1+ pos))
                       (progn
-                        (switchw--restore-eobp eobps)
+                        (switch-window--restore-eobp eobps)
                         (keyboard-quit)))))))))
 
       ;; restore original cursor
