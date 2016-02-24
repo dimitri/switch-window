@@ -198,6 +198,21 @@ ask user which window to delete"
 (defalias 'switch-to-window 'switch-window-delete-window)
 
 ;;;###autoload
+(defun switch-window-maximize-window ()
+  "Display an overlay in each window showing a unique key, then
+ask user which window to maximize"
+  (interactive)
+  (if (<= (length (window-list)) switch-window-threshold)
+      (call-interactively 'delete-other-windows)
+    (progn
+      (let ((index (switch-window--prompt "Maximize window: "))
+            (eobps (switch-window--list-eobp)))
+        (switch-window--apply-to-window-index
+         'select-window index "Maximize %S")
+        (switch-window--restore-eobp eobps))
+      (delete-other-windows))))
+
+;;;###autoload
 (defun switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
