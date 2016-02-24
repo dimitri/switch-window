@@ -181,7 +181,7 @@ from-current-window is not nil"
                 (goto-char (point-max)))))
 
 ;;;###autoload
-(defun switch-window-delete-window ()
+(defun switch-window-then-delete ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to delete"
   (interactive)
@@ -190,10 +190,10 @@ ask user which window to delete"
         (let ((index (switch-window--prompt "Delete window: ")))
           (switch-window--apply-to-window-index 'delete-window index "")))))
 
-(define-obsolete-variable-alias 'switch-to-window 'switch-window-delete-window)
+(define-obsolete-variable-alias 'switch-to-window 'switch-window-then-delete)
 
 ;;;###autoload
-(defun switch-window-maximize-window ()
+(defun switch-window-then-maximize ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to maximize"
   (interactive)
