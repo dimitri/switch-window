@@ -145,17 +145,19 @@ from-current-window is not nil"
          (buf (get-buffer-create
                (format " *%s: %s*" label (buffer-name (window-buffer win))))))
     (with-current-buffer buf
-      ;; increase to maximum switchw-increase
-      (when (fboundp 'text-scale-increase)
-        (text-scale-increase switchw-increase))
-      ;; insert the label, with a hack to support ancient emacs
-      (if (fboundp 'text-scale-increase)
-          (insert label)
-        (insert (propertize label 'face
-                            (list :height (* (* h switchw-increase)
-                                             (if (> w h) 2 1)))))))
-    (set-window-buffer win buf)
-    buf))
+      (let ((w (window-width win))
+            (h (window-body-height win)))
+        ;; increase to maximum switchw-increase
+        (when (fboundp 'text-scale-increase)
+          (text-scale-increase switchw-increase))
+        ;; insert the label, with a hack to support ancient emacs
+        (if (fboundp 'text-scale-increase)
+            (insert label)
+          (insert (propertize label 'face
+                              (list :height (* (* h switchw-increase)
+                                               (if (> w h) 2 1)))))))
+      (set-window-buffer win buf)
+      buf)))
 
 (defun switchw--apply-to-window-index (action n message-format)
   "apply action to given window index, target is the place of the
@@ -181,7 +183,9 @@ from-current-window is not nil"
 (defun switchw--restore-eobp (eobp-window-list)
   "For each window in EOBP-WINDOW-LIST move the point to end of buffer."
   (cl-loop for win in eobp-window-list
-           do (with-current-buffer (window-buffer win) (end-of-buffer))))
+           do (with-current-buffer
+                  (window-buffer win)
+                (goto-char (point-max)))))
 
 ;;;###autoload
 (defun switchw-delete-window ()
@@ -270,7 +274,7 @@ ask user for the window to select"
                 (unless (symbolp input)
                   (let* ((wchars (mapcar 'string-to-char
                                          (switchw--enumerate)))
-                         (pos (position input wchars)))
+                         (pos (cl-position input wchars)))
                     (if pos
                         (setq key (1+ pos))
                       (progn
