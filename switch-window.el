@@ -298,7 +298,8 @@ ask user for the window to select"
                       (progn
                         (switch-window--restore-eobp eobps)
                         (keyboard-quit)))))))))
-
+      ;; clean input-method-previous-message
+      (setq input-method-previous-message nil)
       ;; restore original cursor
       (setq-default cursor-type original-cursor)
       ;; get those huge numbers away
