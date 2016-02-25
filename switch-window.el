@@ -190,8 +190,8 @@ ask user which window to delete"
         (let ((index (switch-window--prompt "Delete window: ")))
           (switch-window--apply-to-window-index 'delete-window index "")))))
 
-(defalias 'switch-to-window 'switch-window-then-delete)
-(make-obsolete 'switch-to-window 'switch-window-then-delete
+(defalias 'delete-other-window 'switch-window-then-delete)
+(make-obsolete 'delete-other-window 'switch-window-then-delete
                "switch-window version 0.2")
 
 ;;;###autoload
