@@ -207,28 +207,28 @@ ask user for the window where move to"
   "Select a window then split it horizontally."
   (interactive "P")
   (switch-window--then
-   "H-split window: " #'split-window-horizontally arg t))
+   "H-split window: " #'split-window-horizontally arg 1))
 
 ;;;###autoload
 (defun switch-window-then-split-vertically (arg)
   "Select a window then split it vertically."
   (interactive "P")
   (switch-window--then
-   "V-split window: " #'split-window-vertically arg t))
+   "V-split window: " #'split-window-vertically arg 1))
 
 ;;;###autoload
 (defun switch-window-then-split-below (arg)
   "Select a window then split it with split-window-below's mode."
   (interactive "P")
   (switch-window--then
-   "Below-split window: " #'split-window-below arg t))
+   "Below-split window: " #'split-window-below arg 1))
 
 ;;;###autoload
 (defun switch-window-then-split-right (arg)
   "Select a window then split it with split-window-right's mode."
   (interactive "P")
   (switch-window--then
-   "Right-split window: " #'split-window-right arg t))
+   "Right-split window: " #'split-window-right arg 1))
 
 (defun switch-window--then (prompt function1 &optional return-original-window
                                    threshold function2 ignore-function2)
