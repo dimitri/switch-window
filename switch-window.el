@@ -216,6 +216,20 @@ ask user for the window where move to"
   (switch-window--then
    "V-split window: " #'split-window-vertically arg t))
 
+;;;###autoload
+(defun switch-window-then-split-below (arg)
+  "Select a window then split it with split-window-below's mode."
+  (interactive "P")
+  (switch-window--then
+   "Below-split window: " #'split-window-below arg t))
+
+;;;###autoload
+(defun switch-window-then-split-right (arg)
+  "Select a window then split it with split-window-right's mode."
+  (interactive "P")
+  (switch-window--then
+   "Right-split window: " #'split-window-right arg t))
+
 (defun switch-window--then (prompt function1 &optional return-original-window
                                    threshold function2 ignore-function2)
   "If the number of opened window is less than `threshold', call `function1'
