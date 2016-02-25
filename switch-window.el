@@ -180,7 +180,9 @@ from-current-window is not nil"
 ask user which window to delete"
   (interactive)
   (switch-window--then
-   "Maximize window: " #'delete-window t t))
+   "Delete window: "
+   #'delete-window
+   #'delete-window t))
 
 (defalias 'delete-other-window 'switch-window-then-delete)
 (make-obsolete 'delete-other-window 'switch-window-then-delete
@@ -192,7 +194,9 @@ ask user which window to delete"
 ask user which window to maximize"
   (interactive)
   (switch-window--then
-   "Maximize window: " #'delete-other-windows t t))
+   "Maximize window: "
+   #'delete-other-windows
+   #'delete-other-windows t))
 
 ;;;###autoload
 (defun switch-window ()
@@ -200,62 +204,68 @@ ask user which window to maximize"
 ask user for the window where move to"
   (interactive)
   (switch-window--then
-   "Move to window: " #'other-window nil t nil t))
+   "Move to window: "
+   #'other-window))
 
 ;;;###autoload
 (defun switch-window-then-split-horizontally (arg)
   "Select a window then split it horizontally."
   (interactive "P")
   (switch-window--then
-   "H-split window: " #'split-window-horizontally arg 1))
+   "Horiz-split window: "
+   #'split-window-horizontally
+   #'split-window-horizontally arg 1))
 
 ;;;###autoload
 (defun switch-window-then-split-vertically (arg)
   "Select a window then split it vertically."
   (interactive "P")
   (switch-window--then
-   "V-split window: " #'split-window-vertically arg 1))
+   "Verti-split window: "
+   #'split-window-vertically
+   #'split-window-vertically arg 1))
 
 ;;;###autoload
 (defun switch-window-then-split-below (arg)
   "Select a window then split it with split-window-below's mode."
   (interactive "P")
   (switch-window--then
-   "Below-split window: " #'split-window-below arg 1))
+   "Below-split window: "
+   #'split-window-below
+   #'split-window-below arg 1))
 
 ;;;###autoload
 (defun switch-window-then-split-right (arg)
   "Select a window then split it with split-window-right's mode."
   (interactive "P")
   (switch-window--then
-   "Right-split window: " #'split-window-right arg 1))
+   "Right-split window: "
+   #'split-window-right
+   #'split-window-right arg 1))
 
-(defun switch-window--then (prompt function1 &optional return-original-window
-                                   threshold function2 ignore-function2)
+(defun switch-window--then (prompt function1 &optional function2
+                                   return-original-window threshold)
   "If the number of opened window is less than `threshold', call `function1'
 in current window, otherwise, switch to the window assocated with the typed key,
-then call `function2' interactively
+then call `function2'.
 
-1. If set `return-original-window' to t, switch to original window when
-   `function2' finished.
-2. If set `threshold' to t, use the value of `switch-window-threshold'.
-3. If set `function2' to nil, use the value of `function1'.
-4. If set `ignore-function2' to t, `function2' will not be called."
-  (if (and threshold
-           (<= (length (window-list))
-               (if (numberp threshold)
-                   threshold
-                 switch-window-threshold)))
+1. `function1' and `function2' are functions with no arguments.
+2. When `return-original-window' is t, switch to original window
+   after `function2' is called.
+3. When `threshold' is not a number, use the value of
+   `switch-window-threshold' instead."
+  (if (<= (length (window-list))
+          (if (numberp threshold)
+              threshold
+            switch-window-threshold))
       (when (functionp function1)
-        (call-interactively function1))
+        (funcall function1))
     (let ((orig-window (selected-window))
           (index (switch-window--prompt prompt))
-          (eobps (switch-window--list-eobp))
-          (function2 (or function2 function1)))
+          (eobps (switch-window--list-eobp)))
       (switch-window--jump-to-window index)
-      (when (and (not ignore-function2)
-                 (functionp function2))
-        (call-interactively function2))
+      (when (functionp function2)
+        (funcall function2))
       (when (and return-original-window
                  (window-live-p orig-window))
         (select-window orig-window))
