@@ -82,7 +82,6 @@
   :type 'integer
   :group 'switch-window)
 
-
 (defcustom switch-window-relative nil
   "Control the ordering of windows, when true this depends on current-window"
   :type 'boolean
@@ -152,18 +151,12 @@ from-current-window is not nil"
       (set-window-buffer win buf)
       buf)))
 
-(defun switch-window--apply-to-window-index (action n message-format)
-  "apply action to given window index, target is the place of the
-   window in (switch-window--list)"
+(defun switch-window--jump-to-window (index)
+  "Jump to the window which index is `index'."
   (cl-loop for c from 1
            for win in (switch-window--list)
-           until (= c n)
-           finally (funcall action win))
-  ;; be verbose about it
-  (unless (minibuffer-window-active-p (selected-window))
-    (message message-format
-             (substring-no-properties
-              (buffer-name (window-buffer (selected-window)))))))
+           until (= c index)
+           finally (select-window win)))
 
 (defun switch-window--list-eobp ()
   "Return a list of all the windows where `eobp' is currently
@@ -176,19 +169,18 @@ from-current-window is not nil"
 (defun switch-window--restore-eobp (eobp-window-list)
   "For each window in EOBP-WINDOW-LIST move the point to end of buffer."
   (cl-loop for win in eobp-window-list
-           do (with-current-buffer
-                  (window-buffer win)
-                (goto-char (point-max)))))
+           do (let ((buffer (window-buffer win)))
+                (when buffer
+                  (with-current-buffer buffer
+                    (goto-char (point-max)))))))
 
 ;;;###autoload
 (defun switch-window-then-delete ()
   "Display an overlay in each window showing a unique key, then
 ask user which window to delete"
   (interactive)
-  (if (> (length (window-list)) 1)
-      (progn
-        (let ((index (switch-window--prompt "Delete window: ")))
-          (switch-window--apply-to-window-index 'delete-window index "")))))
+  (switch-window--then
+   "Maximize window: " #'delete-window t t))
 
 (defalias 'delete-other-window 'switch-window-then-delete)
 (make-obsolete 'delete-other-window 'switch-window-then-delete
@@ -199,28 +191,61 @@ ask user which window to delete"
   "Display an overlay in each window showing a unique key, then
 ask user which window to maximize"
   (interactive)
-  (if (<= (length (window-list)) switch-window-threshold)
-      (call-interactively 'delete-other-windows)
-    (progn
-      (let ((index (switch-window--prompt "Maximize window: "))
-            (eobps (switch-window--list-eobp)))
-        (switch-window--apply-to-window-index
-         'select-window index "Maximize %S")
-        (switch-window--restore-eobp eobps))
-      (delete-other-windows))))
+  (switch-window--then
+   "Maximize window: " #'delete-other-windows t t))
 
 ;;;###autoload
 (defun switch-window ()
   "Display an overlay in each window showing a unique key, then
 ask user for the window where move to"
   (interactive)
-  (if (<= (length (window-list)) switch-window-threshold)
-      (call-interactively 'other-window)
-    (progn
-      (let ((index (switch-window--prompt "Move to window: "))
-            (eobps (switch-window--list-eobp)))
-        (switch-window--apply-to-window-index 'select-window index "Moved to %S")
-        (switch-window--restore-eobp eobps)))))
+  (switch-window--then
+   "Move to window: " #'other-window nil t nil t))
+
+;;;###autoload
+(defun switch-window-then-split-horizontally (arg)
+  "Select a window then split it horizontally."
+  (interactive "P")
+  (switch-window--then
+   "H-split window: " #'split-window-horizontally arg t))
+
+;;;###autoload
+(defun switch-window-then-split-vertically (arg)
+  "Select a window then split it vertically."
+  (interactive "P")
+  (switch-window--then
+   "V-split window: " #'split-window-vertically arg t))
+
+(defun switch-window--then (prompt function1 &optional return-original-window
+                                   threshold function2 ignore-function2)
+  "If the number of opened window is less than `threshold', call `function1'
+in current window, otherwise, switch to the window assocated with the typed key,
+then call `function2' interactively
+
+1. If set `return-original-window' to t, switch to original window when
+   `function2' finished.
+2. If set `threshold' to t, use the value of `switch-window-threshold'.
+3. If set `function2' to nil, use the value of `function1'.
+4. If set `ignore-function2' to t, `function2' will not be called."
+  (if (and threshold
+           (<= (length (window-list))
+               (if (numberp threshold)
+                   threshold
+                 switch-window-threshold)))
+      (when (functionp function1)
+        (call-interactively function1))
+    (let ((orig-window (selected-window))
+          (index (switch-window--prompt prompt))
+          (eobps (switch-window--list-eobp))
+          (function2 (or function2 function1)))
+      (switch-window--jump-to-window index)
+      (when (and (not ignore-function2)
+                 (functionp function2))
+        (call-interactively function2))
+      (when (and return-original-window
+                 (window-live-p orig-window))
+        (select-window orig-window))
+      (switch-window--restore-eobp eobps))))
 
 (defun switch-window--prompt (prompt-message)
   "Display an overlay in each window showing a unique key, then
