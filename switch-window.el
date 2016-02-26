@@ -243,6 +243,22 @@ ask user for the window where move to"
    #'split-window-right
    #'split-window-right arg 1))
 
+;;;###autoload
+(defun switch-window-then-swap-buffer (arg)
+  "Select a window then swap it buffer with current window's buffer."
+  (interactive "P")
+  (let ((buffer1 (window-buffer))
+        (window1 (get-buffer-window))
+        buffer2 window2)
+    (switch-window)
+    (setq buffer2 (current-buffer))
+    (setq window2 (get-buffer-window))
+    (set-window-buffer window2 buffer1)
+    (set-window-buffer window1 buffer2)
+    (if arg
+        (select-window window1)
+      (select-window window2))))
+
 (defun switch-window--then (prompt function1 &optional function2
                                    return-original-window threshold)
   "If the number of opened window is less than `threshold', call `function1'
