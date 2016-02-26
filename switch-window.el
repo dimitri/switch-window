@@ -205,7 +205,7 @@ ask user for the window where move to"
   (interactive)
   (switch-window--then
    "Move to window: "
-   #'other-window))
+   #'(lambda () (other-window 1))))
 
 ;;;###autoload
 (defun switch-window-then-split-horizontally (arg)
