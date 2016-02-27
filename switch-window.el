@@ -100,6 +100,14 @@
   :type 'list
   :group 'switch-window)
 
+(defcustom switch-window-minibuffer-shortcut nil
+  "Whether to customize the minibuffer shortcut.
+Default to no customisation (nil), which will make the minibuffer take whatever the last short is.
+If a character is specified it will always use that key for the minibuffer shortcut."
+  :type '(choice (const :tag "Off" nil)
+                 (character "m"))
+  :group 'switch-window)
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -109,16 +117,24 @@
 
 (defun switch-window--list-keys ()
   "Return a list of keys to use depending on `switch-window-shortcut-style'"
-  (cond ((eq switch-window-shortcut-style 'qwerty)
-         switch-window-qwerty-shortcuts)
-        ((eq switch-window-shortcut-style 'alphabet)
-         (cl-loop for i from 0 to 25
-                  collect (byte-to-string (+ (string-to-char "a") i))))
-        (t (switch-window--list-keyboard-keys))))
+  (remove
+   (when switch-window-minibuffer-shortcut
+     (char-to-string switch-window-minibuffer-shortcut))
+   (cond ((eq switch-window-shortcut-style 'qwerty)
+          switch-window-qwerty-shortcuts)
+         ((eq switch-window-shortcut-style 'alphabet)
+          (cl-loop for i from 0 to 25
+                   collect (byte-to-string (+ (string-to-char "a") i))))
+         (t (switch-window--list-keyboard-keys)))))
 
 (defun switch-window--enumerate ()
   "Return a list of one-letter strings to label current windows"
-  (cl-loop for w being the windows for x in (switch-window--list-keys) collect x))
+  (cl-loop for w in (switch-window--list)
+           for x in (switch-window--list-keys)
+           collect (if (and switch-window-minibuffer-shortcut
+                            (minibuffer-window-active-p w))
+                       (char-to-string switch-window-minibuffer-shortcut)
+                     x)))
 
 (defun switch-window--label (num)
   "Return the label to use for a given window number"
@@ -322,7 +338,9 @@ ask user for the window to select"
                     (read-event
                      (if minibuffer-num
                          (format "Move to window [minibuffer is %s]: "
-                                 (switch-window--label minibuffer-num))
+                                 (if switch-window-minibuffer-shortcut
+                                     (char-to-string switch-window-minibuffer-shortcut)
+                                   (switch-window--label minibuffer-num)))
                        prompt-message)
                      nil switch-window-timeout))))
 
