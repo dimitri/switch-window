@@ -118,25 +118,23 @@ If a character is specified it will always use that key for the minibuffer short
 (defun switch-window--list-keys ()
   "Return a list of keys to use depending on `switch-window-shortcut-style'"
   (remove
-   (if switch-window-minibuffer-shortcut
-       (char-to-string switch-window-minibuffer-shortcut)
-     nil)
-  (cond ((eq switch-window-shortcut-style 'qwerty)
-         switch-window-qwerty-shortcuts)
-        ((eq switch-window-shortcut-style 'alphabet)
-         (cl-loop for i from 0 to 25
-                  collect (byte-to-string (+ (string-to-char "a") i))))
-        (t (switch-window--list-keyboard-keys)))))
+   (when switch-window-minibuffer-shortcut
+     (char-to-string switch-window-minibuffer-shortcut))
+   (cond ((eq switch-window-shortcut-style 'qwerty)
+          switch-window-qwerty-shortcuts)
+         ((eq switch-window-shortcut-style 'alphabet)
+          (cl-loop for i from 0 to 25
+                   collect (byte-to-string (+ (string-to-char "a") i))))
+         (t (switch-window--list-keyboard-keys)))))
 
 (defun switch-window--enumerate ()
   "Return a list of one-letter strings to label current windows"
   (cl-loop for w in (switch-window--list)
            for x in (switch-window--list-keys)
-           collect (progn
-                     (if (and switch-window-minibuffer-shortcut
-                              (minibuffer-window-active-p w))
-                         (char-to-string switch-window-minibuffer-shortcut)
-                       x))))
+           collect (if (and switch-window-minibuffer-shortcut
+                            (minibuffer-window-active-p w))
+                       (char-to-string switch-window-minibuffer-shortcut)
+                     x)))
 
 (defun switch-window--label (num)
   "Return the label to use for a given window number"
