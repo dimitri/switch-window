@@ -108,6 +108,11 @@ If a character is specified it will always use that key for the minibuffer short
                  (character "m"))
   :group 'switch-window)
 
+(defcustom switch-window-configuration-change-hook-inhibit nil
+  "Whether inhibit `window-configuration-change-hook' during switch-window."
+  :type 'boolean
+  :group 'switch-window)
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -311,10 +316,12 @@ ask user for the window to select"
         (minibuffer-num nil)
         (original-cursor (default-value 'cursor-type))
         (eobps (switch-window--list-eobp))
-        (window-configuration-change-hook nil)
         key buffers
         window-points
         dedicated-windows)
+
+    (when switch-window-configuration-change-hook-inhibit
+      (setq window-configuration-change-hook nil))
 
     ;; arrange so that C-g will get back to previous window configuration
     (unwind-protect
