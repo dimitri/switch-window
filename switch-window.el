@@ -152,6 +152,40 @@ from-current-window is not nil"
       (window-list nil nil)
     (window-list nil nil (frame-first-window))))
 
+(defcustom switch-window-use-banner-in-term t
+  "Whether to use external utility `figlet' or `banner' to generate big letters,
+which will be used in terminal to mimic tmux's `display-pane'.
+
+If set to `t', it would be a little slower for the first call of
+`switch-window' in the terminal.")
+
+(defcustom switch-window-banner-program "figlet"
+  "Program use to generate big letters. It could be `figlet', `banner' or
+somthing similar.")
+
+(defvar switch-window--banner-cache (make-hash-table :test 'equal)
+  "Cache for big letters of `1', `2', `3'...")
+
+(defun switch-window--insert-banner (label)
+  "Insert the banner version of LABEL. If failed, insert LABEL itself."
+  (if switch-window-use-banner-in-term
+      (let ((banner (gethash label switch-window--banner-cache))
+            (prg (or (executable-find switch-window-banner-program)
+                     (executable-find "figlet")
+                     (executable-find "banner"))))
+        (if banner
+            (insert banner)
+          ;; not in cache, call `banner' to generate
+          (if (and (= (call-process prg nil '(t nil) nil label) 0)
+                   (> (point) 5)) ;; better way?
+              ;; put buffer conntent to cache
+              (puthash label
+                       (buffer-substring (point-min) (point-max))
+                       switch-window--banner-cache)
+            ;; fallback
+            (insert label))))
+    (insert label)))
+
 (defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let* ((label (switch-window--label num))
@@ -160,15 +194,20 @@ from-current-window is not nil"
     (with-current-buffer buf
       (let ((w (window-width win))
             (h (window-body-height win)))
-        ;; increase to maximum switch-window-increase
-        (when (fboundp 'text-scale-increase)
-          (text-scale-increase switch-window-increase))
-        ;; insert the label, with a hack to support ancient emacs
-        (if (fboundp 'text-scale-increase)
-            (insert label)
-          (insert (propertize label 'face
-                              (list :height (* (* h switch-window-increase)
-                                               (if (> w h) 2 1)))))))
+        (if (and (not (display-graphic-p))
+                 (> h 5)) ;; better way?
+            (switch-window--insert-banner label)
+          (if (fboundp 'text-scale-increase)
+              (progn
+                ;; increase to maximum switch-window-increase
+                (text-scale-increase switch-window-increase)
+                ;; insert the label
+                (insert label))
+            ;; a hack to support ancient emacs
+            (insert (propertize label 'face
+                                (list :height (* (* h switch-window-increase)
+                                                 (if (> w h) 2 1))))))))
+      (beginning-of-buffer)
       (set-window-buffer win buf)
       buf)))
 
