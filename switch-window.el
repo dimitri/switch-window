@@ -152,6 +152,24 @@ from-current-window is not nil"
       (window-list nil nil)
     (window-list nil nil (frame-first-window))))
 
+(defcustom switch-window-use-banner-in-term t
+  "Whether to use external utility `banner' to generate big letters,
+which will be used in terminal, to mimic tmux's `display-pane'.
+
+If set to `t', it would be a little slower for the first call of
+`switch-window' in the terminal.")
+
+(defvar switch-window--banner-cache (make-hash-table :test 'equal)
+  "Cache for big letters of `1', `2', `3'...")
+
+(defun switch-window--generate-banners ()
+  (message "[switch-window]: Generating banners...")
+  (mapc #'(lambda (key)
+            (puthash key
+                     (shell-command-to-string (concat "banner " key))
+                     switch-window--banner-cache))
+        (switch-window--list-keys)))
+
 (defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let* ((label (switch-window--label num))
@@ -160,15 +178,22 @@ from-current-window is not nil"
     (with-current-buffer buf
       (let ((w (window-width win))
             (h (window-body-height win)))
-        ;; increase to maximum switch-window-increase
-        (when (fboundp 'text-scale-increase)
-          (text-scale-increase switch-window-increase))
-        ;; insert the label, with a hack to support ancient emacs
-        (if (fboundp 'text-scale-increase)
-            (insert label)
-          (insert (propertize label 'face
-                              (list :height (* (* h switch-window-increase)
-                                               (if (> w h) 2 1)))))))
+        (if (and (not (display-graphic-p))
+                 switch-window-use-banner-in-term
+                 (executable-find "banner")
+                 (hash-table-count switch-window--banner-cache))
+                 (switch-window--generate-banners)
+            (insert (gethash label switch-window--banner-cache))
+            (if (fboundp 'text-scale-increase)
+                (progn
+                  ;; increase to maximum switch-window-increase
+                  (text-scale-increase switch-window-increase)
+                  ;; insert the label
+                  (insert label))
+              ;; a hack to support ancient emacs
+              (insert (propertize label 'face
+                                  (list :height (* (* h switch-window-increase)
+                                                   (if (> w h) 2 1))))))))
       (set-window-buffer win buf)
       buf)))
 
