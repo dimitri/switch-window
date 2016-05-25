@@ -162,15 +162,22 @@ If set to `t', it would be a little slower for the first call of
 (defvar switch-window--banner-cache (make-hash-table :test 'equal)
   "Cache for big letters of `1', `2', `3'...")
 
-(defun switch-window--generate-banners ()
-  (message "[switch-window]: Generating banners...")
-  (mapc #'(lambda (key)
-            (or (gethash key swith-window--banner-cache)
-                (puthash key
-                         (shell-command-to-string (concat "banner " key))
-                         switch-window--banner-cache)))
-          (switch-window--list-keys))
-  (> (hash-table-count switch-window--banner-cache) 0))
+(defun switch-window--insert-banner (label)
+  "Insert the banner version of LABEL. If failed, insert LABEL itself."
+  (if (and switch-window-use-banner-in-term
+           (executable-find "banner"))
+      (let ((banner (gethash label switch-window--banner-cache)))
+        (if banner
+            (insert banner)
+          ;; not in cache, call `banner' to generate
+          (if (and (= (call-process "banner" nil '(t nil) nil label) 0)
+                   (> (point) 5))
+              ;; put buffer conntent to cache
+              (puthash label
+                       (buffer-substring (point-min) (point-max))
+                       switch-window--banner-cache)
+            (insert label))))
+    (insert label)))
 
 (defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
@@ -180,11 +187,8 @@ If set to `t', it would be a little slower for the first call of
     (with-current-buffer buf
       (let ((w (window-width win))
             (h (window-body-height win)))
-        (if (and (not (display-graphic-p))
-                 switch-window-use-banner-in-term
-                 (executable-find "banner")
-                 (switch-window--generate-banners))
-            (insert (gethash label switch-window--banner-cache))
+        (if (not (display-graphic-p))
+            (switch-window--insert-banner label)
           (if (fboundp 'text-scale-increase)
               (progn
                 ;; increase to maximum switch-window-increase
