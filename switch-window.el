@@ -165,10 +165,12 @@ If set to `t', it would be a little slower for the first call of
 (defun switch-window--generate-banners ()
   (message "[switch-window]: Generating banners...")
   (mapc #'(lambda (key)
-            (puthash key
-                     (shell-command-to-string (concat "banner " key))
-                     switch-window--banner-cache))
-        (switch-window--list-keys)))
+            (or (gethash key swith-window--banner-cache)
+                (puthash key
+                         (shell-command-to-string (concat "banner " key))
+                         switch-window--banner-cache)))
+          (switch-window--list-keys))
+  (> (hash-table-count switch-window--banner-cache) 0))
 
 (defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
@@ -181,19 +183,18 @@ If set to `t', it would be a little slower for the first call of
         (if (and (not (display-graphic-p))
                  switch-window-use-banner-in-term
                  (executable-find "banner")
-                 (hash-table-count switch-window--banner-cache))
-                 (switch-window--generate-banners)
+                 (switch-window--generate-banners))
             (insert (gethash label switch-window--banner-cache))
-            (if (fboundp 'text-scale-increase)
-                (progn
-                  ;; increase to maximum switch-window-increase
-                  (text-scale-increase switch-window-increase)
-                  ;; insert the label
-                  (insert label))
-              ;; a hack to support ancient emacs
-              (insert (propertize label 'face
-                                  (list :height (* (* h switch-window-increase)
-                                                   (if (> w h) 2 1))))))))
+          (if (fboundp 'text-scale-increase)
+              (progn
+                ;; increase to maximum switch-window-increase
+                (text-scale-increase switch-window-increase)
+                ;; insert the label
+                (insert label))
+            ;; a hack to support ancient emacs
+            (insert (propertize label 'face
+                                (list :height (* (* h switch-window-increase)
+                                                 (if (> w h) 2 1))))))))
       (set-window-buffer win buf)
       buf)))
 
