@@ -100,6 +100,16 @@
   :type 'list
   :group 'switch-window)
 
+(defcustom switch-window-label-buffer-function
+  'switch-window--create-label-buffer
+  "The function is used to prepare a temp buffer to diplay
+a window's label string, three arguments are required:
+1. buffer  Label string will be inserted into this buffer.
+2. label   The window's shortcut string.
+3. scale   Use to increase or decrease label's size."
+  :type 'function
+  :group 'switch-window)
+
 (defcustom switch-window-input-style 'default
   "Use `read-event' or `read-from-minibuffer' to get user's input."
   :type '(choice (const :tag "Get input by read-event" 'default)
@@ -161,22 +171,23 @@ from-current-window is not nil"
 (defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let* ((label (switch-window--label num))
-         (buf (get-buffer-create
-               (format " *%s: %s*" label (buffer-name (window-buffer win))))))
-    (with-current-buffer buf
-      (let ((w (window-width win))
-            (h (window-body-height win)))
-        ;; increase to maximum switch-window-increase
-        (when (fboundp 'text-scale-increase)
-          (text-scale-increase switch-window-increase))
-        ;; insert the label, with a hack to support ancient emacs
-        (if (fboundp 'text-scale-increase)
-            (insert label)
-          (insert (propertize label 'face
-                              (list :height (* (* h switch-window-increase)
-                                               (if (> w h) 2 1)))))))
-      (set-window-buffer win buf)
-      buf)))
+         (buffer (get-buffer-create
+                  (format " *%s: %s*"
+                          label (buffer-name (window-buffer win))))))
+    (funcall switch-window-label-buffer-function
+             buffer label switch-window-increase)
+    (set-window-buffer win buffer)
+    buffer))
+
+(defun switch-window--create-label-buffer (buffer label scale)
+  "The default label buffer create funcion."
+  (with-current-buffer buffer
+    (if (fboundp 'text-scale-increase)
+        (progn (text-scale-increase scale)
+               (insert label))
+      (insert (propertize
+               label 'face (list :height (* 1.0 scale)))))
+    buffer))
 
 (defun switch-window--jump-to-window (index)
   "Jump to the window which index is `index'."
