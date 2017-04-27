@@ -100,6 +100,12 @@
   :type 'list
   :group 'switch-window)
 
+(defcustom switch-window-input-style 'default
+  "Use `read-event' or `read-from-minibuffer' to get user's input."
+  :type '(choice (const :tag "Get input by read-event" 'default)
+                 (const :tag "Get input from minibuffer" 'minibuffer))
+  :group 'switch-window)
+
 (defcustom switch-window-minibuffer-shortcut nil
   "Whether to customize the minibuffer shortcut.
 Default to no customisation (nil), which will make the minibuffer take whatever the last short is.
@@ -308,6 +314,53 @@ then call `function2'.
         (select-window orig-window))
       (switch-window--restore-eobp eobps))))
 
+(defun switch-window--get-input (prompt-message minibuffer-num eobps)
+  "Get user's input with the help of `read-event'."
+  (let (key)
+    (while (not key)
+      (let ((input (event-basic-type
+                    (read-event
+                     (if minibuffer-num
+                         (format "Move to window [minibuffer is %s]: "
+                                 (if switch-window-minibuffer-shortcut
+                                     (char-to-string switch-window-minibuffer-shortcut)
+                                   (switch-window--label minibuffer-num)))
+                       prompt-message)
+                     nil switch-window-timeout))))
+        (if (or (null input) (eq input 'return))
+            (progn
+              (switch-window--restore-eobp eobps)
+              (keyboard-quit))	; timeout or RET
+          (unless (symbolp input)
+            (let* ((wchars (mapcar 'string-to-char
+                                   (switch-window--enumerate)))
+                   (pos (cl-position input wchars)))
+              (if pos
+                  (setq key (1+ pos))
+                (switch-window--restore-eobp eobps)
+                (keyboard-quit)))))))
+    key))
+
+(defun switch-window--get-minibuffer-input (prompt-message minibuffer-num eobps)
+  "Get user's input with the help of `read-from-minibuffer'."
+  (let (key)
+    (while (not key)
+      (let ((input (read-from-minibuffer
+                    (if minibuffer-num
+                        (format "Move to window [minibuffer is %s]: "
+                                (if switch-window-minibuffer-shortcut
+                                    (char-to-string switch-window-minibuffer-shortcut)
+                                  (switch-window--label minibuffer-num)))
+                      prompt-message))))
+        (if (< (length input) 1)
+            (switch-window--restore-eobp eobps)
+          (let ((pos (cl-position input (switch-window--enumerate)
+                                  :test #'equal)))
+            (if pos
+                (setq key (1+ pos))
+              (switch-window--restore-eobp eobps))))))
+    key))
+
 (defun switch-window--prompt (prompt-message)
   "Display an overlay in each window showing a unique key, then
 ask user for the window to select"
@@ -338,32 +391,12 @@ ask user for the window to select"
                 (setq minibuffer-num num)
               (push (switch-window--display-number win num) buffers))
             (setq num (1+ num)))
-
-          (while (not key)
-            (let ((input
-                   (event-basic-type
-                    (read-event
-                     (if minibuffer-num
-                         (format "Move to window [minibuffer is %s]: "
-                                 (if switch-window-minibuffer-shortcut
-                                     (char-to-string switch-window-minibuffer-shortcut)
-                                   (switch-window--label minibuffer-num)))
-                       prompt-message)
-                     nil switch-window-timeout))))
-
-              (if (or (null input) (eq input 'return))
-                  (progn
-                    (switch-window--restore-eobp eobps)
-                    (keyboard-quit))	; timeout or RET
-                (unless (symbolp input)
-                  (let* ((wchars (mapcar 'string-to-char
-                                         (switch-window--enumerate)))
-                         (pos (cl-position input wchars)))
-                    (if pos
-                        (setq key (1+ pos))
-                      (progn
-                        (switch-window--restore-eobp eobps)
-                        (keyboard-quit)))))))))
+          (cond ((eq switch-window-input-style 'default)
+                 (setq key (switch-window--get-input
+                            prompt-message minibuffer-num eobps)))
+                ((eq switch-window-input-style 'minibuffer)
+                 (setq key (switch-window--get-minibuffer-input
+                            prompt-message minibuffer-num eobps)))))
       ;; clean input-method-previous-message
       (setq input-method-previous-message nil)
       ;; restore original cursor
