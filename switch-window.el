@@ -65,6 +65,17 @@
 ;; (setq switch-window-minibuffer-shortcut "z")
 ;; #+END_EXAMPLE
 ;;
+;; *** Switch-window seem to conflict with Exwm, how to do?
+;; By default, switch-window get user's input with the help
+;; of function `read-event', this approach does not work well
+;; with [[https://github.com/ch11ng/exwm][Exwm]] (Emacs X window manager),
+;; user should set the below variable and use minibuffer
+;; to get input instead:
+;;
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-input-style 'minibuffer)
+;; #+END_EXAMPLE
+;;
 ;; *** I want to make switch-window beautiful?
 ;; All you should to do is setting the variable
 ;; `switch-window-label-buffer-function', for example:
@@ -78,6 +89,9 @@
 ;;
 ;; [[./snapshots/switch-window-2.png]]
 ;; [[./snapshots/switch-window-3.png]]
+;;
+;; *** Have any other similar package exist?
+;; - [[https://github.com/abo-abo/ace-window][ace-window]]
 ;;
 ;; ** Changelog
 ;;
