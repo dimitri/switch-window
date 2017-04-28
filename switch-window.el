@@ -1,8 +1,10 @@
 ;;; switch-window.el --- A *visual* way to choose a window to switch to
 ;;
-;; Copyright (C) 2010 Dimitri Fontaine
+;; Copyright (C) 2010-2017  Dimitri Fontaine
+;;               2016-2017  Feng Shu
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
+;;         Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/dimitri/switch-window
 ;;      http://tapoueh.org/emacs/switch-window.html
 ;; Git-URL: https://github.com/dimitri/switch-window.git
