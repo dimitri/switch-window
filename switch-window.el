@@ -8,7 +8,7 @@
 ;; URL: https://github.com/dimitri/switch-window
 ;;      http://tapoueh.org/emacs/switch-window.html
 ;; Git-URL: https://github.com/dimitri/switch-window.git
-;; Version: 0.11
+;; Version: 1.5.0
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
