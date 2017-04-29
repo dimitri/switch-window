@@ -1,12 +1,14 @@
 ;;; switch-window.el --- A *visual* way to choose a window to switch to
 ;;
-;; Copyright (C) 2010 Dimitri Fontaine
+;; Copyright (C) 2010-2017  Dimitri Fontaine
+;;               2016-2017  Feng Shu
 ;;
 ;; Author: Dimitri Fontaine <dim@tapoueh.org>
+;;         Feng Shu <tumashu@163.com>
 ;; URL: https://github.com/dimitri/switch-window
 ;;      http://tapoueh.org/emacs/switch-window.html
 ;; Git-URL: https://github.com/dimitri/switch-window.git
-;; Version: 0.11
+;; Version: 1.5.0
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -14,52 +16,132 @@
 ;;
 ;; This file is NOT part of GNU Emacs.
 ;;
-
 ;;; Commentary:
 ;;
-;; * Usage
+;; * What is switch-window                       :README:
+;; switch-window is an emacs window switch tool, which offer a
+;; *visual* way to choose a window to switch to, delete, split
+;; or other operations.
 ;;
-;;    (require 'switch-window)
-;;    (global-set-key (kbd "C-x o") 'switch-window)
+;; [[./snapshots/switch-window.png]]
 ;;
-;; * Changelog
+;; ** Installation
 ;;
-;; 0.11 - 2013-09-14
+;; 1. Config melpa source, please read: http://melpa.org/#/getting-started
+;; 2. M-x package-install RET switch-window RET
 ;;
-;;  - restore point to end-of-buffer for windows where it was the case after
-;;    switching, fixing an anoying bug.
+;; Note: User can install switch-window with [[http://github.com/dimitri/el-get][El-Get]] too.
 ;;
-;; 0.10 - 2011-06-19
+;; ** Configure and Usage
 ;;
-;;  - implement M-x delete-other-window (thanks developernotes on github)
+;; #+BEGIN_EXAMPLE
+;; (require 'switch-window)
+;; (global-set-key (kbd "C-x o") 'switch-window)
+;; (global-set-key (kbd "C-x 1") 'switch-window-then-maximize)
+;; (global-set-key (kbd "C-x 2") 'switch-window-then-split-below)
+;; (global-set-key (kbd "C-x 3") 'switch-window-then-split-right)
+;; (global-set-key (kbd "C-x 0") 'switch-window-then-delete)
+;; #+END_EXAMPLE
 ;;
-;; 0.9 - 2010-11-11 - emacs22 called, it wants some support
+;; ** Tips
 ;;
-;;  - implement a propertize based hack to support emacs22
+;; *** I want to select a window with "a-z" instead of "1-9".
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-shortcut-style 'qwerty)
+;; (setq switch-window-qwerty-shortcuts
+;;       '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o"))
+;; #+END_EXAMPLE
 ;;
-;; 0.8 - 2010-09-13 - 999
+;; *** I want to let window to show bigger label.
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-increase 6) ;Increase or decrease this number.
+;; #+END_EXAMPLE
 ;;
-;;  - Suport more than 9 windows (with a single key to type)
-;;  - Use quail-keyboard-layout to choose single key labels for windows
+;; *** I want to *hide* window label when window's number < 3
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-threshold 2)
+;; #+END_EXAMPLE
 ;;
-;; 0.7 - 2010-08-23 - window-dedicated-p
+;; *** I want to select minibuffer with label "z".
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-minibuffer-shortcut "z")
+;; #+END_EXAMPLE
 ;;
-;;  - temporarily unset the window dedicated flag for displaying the
-;;    numbers, patch from René Kyllingstad <Rene@Kyllingstad.com>
-;;  - fix timeout and RET handling wrt to not changing window selection
+;; *** Switch-window seem to conflict with Exwm, how to do?
+;; By default, switch-window get user's input with the help
+;; of function `read-event', this approach does not work well
+;; with [[https://github.com/ch11ng/exwm][Exwm]] (Emacs X window manager),
+;; user should set the below variable and use minibuffer
+;; to get input instead:
 ;;
-;; 0.6 - 2010-08-12 - *Minibuf-1*
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-input-style 'minibuffer)
+;; #+END_EXAMPLE
 ;;
-;;  - add support for selecting the minibuffer when it's active
-;;  - some try at a better horizontal centering
-;;  - assorted cleanup
+;; *** I want to make switch-window beautiful?
+;; All you should to do is setting the variable
+;; `switch-window-label-buffer-function', for example:
 ;;
-;; 0.5 - 2010-08-08 - Polishing
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-label-buffer-function
+;;       'my-switch-window-label-buffer-function)
+;; #+END_EXAMPLE
 ;;
-;;  - dim:switch-window-increase is now a maximum value
+;; The below are some switch-window user's showcases:
 ;;
+;; [[./snapshots/switch-window-2.png]]
+;; [[./snapshots/switch-window-3.png]]
+;;
+;; *** Have any other similar package exist?
+;; - [[https://github.com/abo-abo/ace-window][ace-window]]
+;;
+;; ** Changelog
+;;
+;; *** 1.5.0 - 2017-04-29
+;; - Implement commands:
+;;   1. switch-window-then-maximize
+;;   2. switch-window-then-delete
+;;   3. switch-window-then-split-below
+;;   4. switch-window-then-split-right
+;;   5. switch-window-then-split-horizontally
+;;   6. switch-window-then-split-vertically
+;;   7. switch-window-then-swap-buffer
+;; - Let switch-window work well with Exwm (Emacs X window manager).
+;; - User can customize switch-window label's appearance.
+;;
+;; *** 1.0.0 - 2015-01-14
+;; - Please fixme.
+;;
+;; *** 0.11 - 2013-09-14
+;; - restore point to end-of-buffer for windows where it was the case after
+;;   switching, fixing an anoying bug.
+;;
+;; *** 0.10 - 2011-06-19
+;; - implement M-x delete-other-window (thanks developernotes on github)
+;;
+;; *** 0.9 - 2010-11-11 - emacs22 called, it wants some support
+;; - implement a propertize based hack to support emacs22
+;;
+;; *** 0.8 - 2010-09-13 - 999
+;; - Suport more than 9 windows (with a single key to type)
+;; - Use quail-keyboard-layout to choose single key labels for windows
+;;
+;; *** 0.7 - 2010-08-23 - window-dedicated-p
+;; - temporarily unset the window dedicated flag for displaying the
+;;   numbers, patch from René Kyllingstad <Rene@Kyllingstad.com>
+;; - fix timeout and RET handling wrt to not changing window selection
+;;
+;; *** 0.6 - 2010-08-12 - *Minibuf-1*
+;; - add support for selecting the minibuffer when it's active
+;; - some try at a better horizontal centering
+;; - assorted cleanup
+;;
+;; *** 0.5 - 2010-08-08 - Polishing
+;; - dim:switch-window-increase is now a maximum value
 
 ;;; Code:
+;; * Switch-window's code
+
 (require 'cl-lib) ; We use cl-loop and cl-subseq
 (require 'quail)
 
@@ -98,6 +180,22 @@
   '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
   "The list of characters used when switch-window-shortcut-style is 'qwerty'"
   :type 'list
+  :group 'switch-window)
+
+(defcustom switch-window-label-buffer-function
+  'switch-window--create-label-buffer
+  "The function is used to prepare a temp buffer to diplay
+a window's label string, three arguments are required:
+1. buffer  Label string will be inserted into this buffer.
+2. label   The window's shortcut string.
+3. scale   Use to increase or decrease label's size."
+  :type 'function
+  :group 'switch-window)
+
+(defcustom switch-window-input-style 'default
+  "Use `read-event' or `read-from-minibuffer' to get user's input."
+  :type '(choice (const :tag "Get input by read-event" 'default)
+                 (const :tag "Get input from minibuffer" 'minibuffer))
   :group 'switch-window)
 
 (defcustom switch-window-minibuffer-shortcut nil
@@ -155,22 +253,23 @@ from-current-window is not nil"
 (defun switch-window--display-number (win num)
   "prepare a temp buffer to diplay in the window while choosing"
   (let* ((label (switch-window--label num))
-         (buf (get-buffer-create
-               (format " *%s: %s*" label (buffer-name (window-buffer win))))))
-    (with-current-buffer buf
-      (let ((w (window-width win))
-            (h (window-body-height win)))
-        ;; increase to maximum switch-window-increase
-        (when (fboundp 'text-scale-increase)
-          (text-scale-increase switch-window-increase))
-        ;; insert the label, with a hack to support ancient emacs
-        (if (fboundp 'text-scale-increase)
-            (insert label)
-          (insert (propertize label 'face
-                              (list :height (* (* h switch-window-increase)
-                                               (if (> w h) 2 1)))))))
-      (set-window-buffer win buf)
-      buf)))
+         (buffer (get-buffer-create
+                  (format " *%s: %s*"
+                          label (buffer-name (window-buffer win))))))
+    (funcall switch-window-label-buffer-function
+             buffer label switch-window-increase)
+    (set-window-buffer win buffer)
+    buffer))
+
+(defun switch-window--create-label-buffer (buffer label scale)
+  "The default label buffer create funcion."
+  (with-current-buffer buffer
+    (if (fboundp 'text-scale-increase)
+        (progn (text-scale-increase scale)
+               (insert label))
+      (insert (propertize
+               label 'face (list :height (* 1.0 scale)))))
+    buffer))
 
 (defun switch-window--jump-to-window (index)
   "Jump to the window which index is `index'."
@@ -308,6 +407,64 @@ then call `function2'.
         (select-window orig-window))
       (switch-window--restore-eobp eobps))))
 
+(defun switch-window--get-input (prompt-message minibuffer-num eobps)
+  "Get user's input with the help of `read-event'."
+  (let (key)
+    (while (not key)
+      (let ((input (event-basic-type
+                    (read-event
+                     (if minibuffer-num
+                         (format "Move to window [minibuffer is %s]: "
+                                 (if switch-window-minibuffer-shortcut
+                                     (char-to-string switch-window-minibuffer-shortcut)
+                                   (switch-window--label minibuffer-num)))
+                       prompt-message)
+                     nil switch-window-timeout))))
+        (if (or (null input) (eq input 'return))
+            (progn
+              (switch-window--restore-eobp eobps)
+              (keyboard-quit))	; timeout or RET
+          (unless (symbolp input)
+            (let* ((wchars (mapcar 'string-to-char
+                                   (switch-window--enumerate)))
+                   (pos (cl-position input wchars)))
+              (if pos
+                  (setq key (1+ pos))
+                (switch-window--restore-eobp eobps)
+                (keyboard-quit)))))))
+    key))
+
+(defun switch-window--get-minibuffer-input (prompt-message minibuffer-num eobps)
+  "Get user's input with the help of `read-from-minibuffer'."
+  (let (key)
+    (while (not key)
+      (let ((input (read-from-minibuffer
+                    (if minibuffer-num
+                        (format "Move to window [minibuffer is %s]: "
+                                (if switch-window-minibuffer-shortcut
+                                    (char-to-string switch-window-minibuffer-shortcut)
+                                  (switch-window--label minibuffer-num)))
+                      prompt-message)
+                    nil
+                    (let ((map (copy-keymap minibuffer-local-map))
+                          (i ?\ ))
+                      (while (< i 127)
+                        (define-key map (char-to-string i)
+                          (lambda ()
+                            (interactive)
+                            (self-insert-command 1)
+                            (exit-minibuffer)))
+                        (setq i (1+ i)))
+                      map))))
+        (if (< (length input) 1)
+            (switch-window--restore-eobp eobps)
+          (let ((pos (cl-position input (switch-window--enumerate)
+                                  :test #'equal)))
+            (if pos
+                (setq key (1+ pos))
+              (switch-window--restore-eobp eobps))))))
+    key))
+
 (defun switch-window--prompt (prompt-message)
   "Display an overlay in each window showing a unique key, then
 ask user for the window to select"
@@ -338,32 +495,12 @@ ask user for the window to select"
                 (setq minibuffer-num num)
               (push (switch-window--display-number win num) buffers))
             (setq num (1+ num)))
-
-          (while (not key)
-            (let ((input
-                   (event-basic-type
-                    (read-event
-                     (if minibuffer-num
-                         (format "Move to window [minibuffer is %s]: "
-                                 (if switch-window-minibuffer-shortcut
-                                     (char-to-string switch-window-minibuffer-shortcut)
-                                   (switch-window--label minibuffer-num)))
-                       prompt-message)
-                     nil switch-window-timeout))))
-
-              (if (or (null input) (eq input 'return))
-                  (progn
-                    (switch-window--restore-eobp eobps)
-                    (keyboard-quit))	; timeout or RET
-                (unless (symbolp input)
-                  (let* ((wchars (mapcar 'string-to-char
-                                         (switch-window--enumerate)))
-                         (pos (cl-position input wchars)))
-                    (if pos
-                        (setq key (1+ pos))
-                      (progn
-                        (switch-window--restore-eobp eobps)
-                        (keyboard-quit)))))))))
+          (cond ((eq switch-window-input-style 'default)
+                 (setq key (switch-window--get-input
+                            prompt-message minibuffer-num eobps)))
+                ((eq switch-window-input-style 'minibuffer)
+                 (setq key (switch-window--get-minibuffer-input
+                            prompt-message minibuffer-num eobps)))))
       ;; clean input-method-previous-message
       (setq input-method-previous-message nil)
       ;; restore original cursor
