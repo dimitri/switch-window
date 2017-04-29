@@ -97,6 +97,21 @@
 ;;
 ;; ** Changelog
 ;;
+;; *** 1.5.0 - 2017-04-29
+;; - Implement commands:
+;;   1. switch-window-then-maximize
+;;   2. switch-window-then-delete
+;;   3. switch-window-then-split-below
+;;   4. switch-window-then-split-right
+;;   5. switch-window-then-split-horizontally
+;;   6. switch-window-then-split-vertically
+;;   7. switch-window-then-swap-buffer
+;; - Let switch-window work well with Exwm (Emacs X window manager).
+;; - User can customize switch-window label's appearance.
+;;
+;; *** 1.0.0 - 2015-01-14
+;; - Please fixme.
+;;
 ;; *** 0.11 - 2013-09-14
 ;; - restore point to end-of-buffer for windows where it was the case after
 ;;   switching, fixing an anoying bug.
