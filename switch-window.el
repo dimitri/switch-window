@@ -67,6 +67,16 @@
 ;; (setq switch-window-minibuffer-shortcut "z")
 ;; #+END_EXAMPLE
 ;;
+;; *** I use text terminal, but I want *bigger* label.
+;; The only choice is using asciiart, which *draw* a bigger label
+;; with *small* ascii char.
+;;
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-asciiart-shortcut t)
+;; #+END_EXAMPLE
+;;
+;; [[./snapshots/switch-window-3.png]]
+;;
 ;; *** Switch-window seem to conflict with Exwm, how to do?
 ;; By default, switch-window get user's input with the help
 ;; of function `read-event', this approach does not work well
@@ -90,7 +100,6 @@
 ;; The below are some switch-window user's showcases:
 ;;
 ;; [[./snapshots/switch-window-2.png]]
-;; [[./snapshots/switch-window-3.png]]
 ;;
 ;; *** Have any other similar package exist?
 ;; - [[https://github.com/abo-abo/ace-window][ace-window]]
@@ -144,6 +153,7 @@
 
 (require 'cl-lib) ; We use cl-loop and cl-subseq
 (require 'quail)
+(require 'switch-window-asciiart)
 
 (defgroup switch-window nil
   "switch-window customization group"
@@ -180,6 +190,11 @@
   '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
   "The list of characters used when switch-window-shortcut-style is 'qwerty'"
   :type 'list
+  :group 'switch-window)
+
+(defcustom switch-window-asciiart-shortcut nil
+  "Use asciiart style shortcut, this may be useful in text-only terminal."
+  :type 'boolean
   :group 'switch-window)
 
 (defcustom switch-window-label-buffer-function
@@ -264,11 +279,20 @@ from-current-window is not nil"
 (defun switch-window--create-label-buffer (buffer label scale)
   "The default label buffer create funcion."
   (with-current-buffer buffer
-    (if (fboundp 'text-scale-increase)
-        (progn (text-scale-increase scale)
-               (insert label))
-      (insert (propertize
-               label 'face (list :height (* 1.0 scale)))))
+    (if switch-window-asciiart-shortcut
+        (insert (replace-regexp-in-string
+                 "^\n" ""
+                 (nth (cl-position
+                       label
+                       (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
+                       :test #'equal)
+                      switch-window-asciiart)))
+      (if (fboundp 'text-scale-increase)
+          (progn (text-scale-increase scale)
+                 (insert label))
+        (insert (propertize
+                 label 'face (list :height (* 1.0 scale))))))
+    (goto-char (point-min))
     buffer))
 
 (defun switch-window--jump-to-window (index)
