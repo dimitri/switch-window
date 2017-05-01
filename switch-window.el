@@ -43,6 +43,19 @@
 ;; (global-set-key (kbd "C-x 0") 'switch-window-then-delete)
 ;; #+END_EXAMPLE
 ;;
+;; When switch-window is enabled, user can use the below five keys:
+;;
+;; | key | command description   |
+;; |-----+-----------------------|
+;; | "i" | Move the border up    |
+;; | "k" | Move the border down  |
+;; | "j" | Move the border left  |
+;; | "k" | Move the border right |
+;; | "b" | Balance windows       |
+;;
+;; If you want to customize this feature, please see variable:
+;; `switch-window-extra-map'.
+;;
 ;; ** Tips
 ;;
 ;; *** I want to select a window with "a-z" instead of "1-9".
@@ -167,6 +180,7 @@
 (require 'quail)
 (require 'pcase)
 (require 'switch-window-asciiart)
+(require 'switch-window-mvborder)
 
 (defgroup switch-window nil
   "switch-window customization group"
@@ -200,7 +214,7 @@
   :group 'switch-window)
 
 (defcustom switch-window-qwerty-shortcuts
-  '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o")
+  '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o" "g" "h" "r" "q" "u" "v" "n")
   "The list of characters used when switch-window-shortcut-style is 'qwerty'"
   :type 'list
   :group 'switch-window)
@@ -242,6 +256,19 @@ If a character is specified it will always use that key for the minibuffer short
                  (character "m"))
   :group 'switch-window)
 
+(defvar switch-window-extra-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "i") 'switch-window-mvborder-up)
+    (define-key map (kbd "k") 'switch-window-mvborder-down)
+    (define-key map (kbd "j") 'switch-window-mvborder-left)
+    (define-key map (kbd "l") 'switch-window-mvborder-right)
+    (define-key map (kbd "b") 'balance-windows)
+    map)
+  "Extra keymap for switch-window input.
+Note: at the moment, it cannot bind commands, which will
+increase or decrease window's number, for example:
+`split-window-below' `split-window-right' `maximize'.")
+
 (defcustom switch-window-configuration-change-hook-inhibit nil
   "Whether inhibit `window-configuration-change-hook' during switch-window."
   :type 'boolean
@@ -256,9 +283,11 @@ If a character is specified it will always use that key for the minibuffer short
 
 (defun switch-window--list-keys ()
   "Return a list of keys to use depending on `switch-window-shortcut-style'"
-  (remove
-   (when switch-window-minibuffer-shortcut
-     (char-to-string switch-window-minibuffer-shortcut))
+  (cl-remove-if
+   #'(lambda (key)
+       (or (and switch-window-minibuffer-shortcut
+                (char-to-string switch-window-minibuffer-shortcut))
+           (lookup-key switch-window-extra-map key)))
    (cond ((eq switch-window-shortcut-style 'qwerty)
           switch-window-qwerty-shortcuts)
          ((eq switch-window-shortcut-style 'alphabet)
@@ -492,11 +521,16 @@ then call `function2'.
           (unless (symbolp input)
             (let* ((wchars (mapcar 'string-to-char
                                    (switch-window--enumerate)))
-                   (pos (cl-position input wchars)))
-              (if pos
-                  (setq key (1+ pos))
-                (switch-window--restore-eobp eobps)
-                (keyboard-quit)))))))
+                   (pos (cl-position input wchars))
+                   (extra-function
+                    (lookup-key switch-window-extra-map
+                                (char-to-string input))))
+              (cond
+               (extra-function
+                (call-interactively extra-function))
+               (pos (setq key (1+ pos)))
+               (t (switch-window--restore-eobp eobps)
+                  (keyboard-quit))))))))
     key))
 
 (defun switch-window--get-minibuffer-input (prompt-message minibuffer-num eobps)
@@ -524,42 +558,47 @@ then call `function2'.
         (if (< (length input) 1)
             (switch-window--restore-eobp eobps)
           (let ((pos (cl-position input (switch-window--enumerate)
-                                  :test #'equal)))
-            (if pos
-                (setq key (1+ pos))
-              (switch-window--restore-eobp eobps))))))
+                                  :test #'equal))
+                (extra-function
+                 (lookup-key switch-window-extra-map input)))
+            (cond
+             (extra-function
+              (call-interactively extra-function))
+             (pos (setq key (1+ pos)))
+             (t (switch-window--restore-eobp eobps)))))))
     key))
 
 (defun switch-window--prompt (prompt-message)
   "Display an overlay in each window showing a unique key, then
 ask user for the window to select"
-  (let ((config (current-window-configuration))
-        (num 1)
-        (minibuffer-num nil)
-        (original-cursor (default-value 'cursor-type))
-        (eobps (switch-window--list-eobp))
-        (window-configuration-change-hook
+  (let ((window-configuration-change-hook
          (unless switch-window-configuration-change-hook-inhibit
            window-configuration-change-hook))
-        key buffers
-        window-points
-        dedicated-windows)
+        (original-cursor (default-value 'cursor-type))
+        (eobps (switch-window--list-eobp))
+        (minibuffer-num nil)
+        (num 1)
+        key label-buffers
+        window-buffers window-points dedicated-windows)
 
     ;; arrange so that C-g will get back to previous window configuration
     (unwind-protect
         (progn
           ;; hide cursor during window selection process
           (setq-default cursor-type nil)
-          ;; display big numbers to ease window selection
+          ;; save window's buffer, point and dedicate state.
+          ;; then display label buffers in all window.
           (dolist (win (switch-window--list))
+            (push (cons win (window-buffer win)) window-buffers)
             (push (cons win (window-point win)) window-points)
             (when (window-dedicated-p win)
               (push (cons win (window-dedicated-p win)) dedicated-windows)
               (set-window-dedicated-p win nil))
             (if (minibuffer-window-active-p win)
                 (setq minibuffer-num num)
-              (push (switch-window--display-number win num) buffers))
+              (push (switch-window--display-number win num) label-buffers))
             (setq num (1+ num)))
+          ;; get user's input
           (cond ((eq switch-window-input-style 'default)
                  (setq key (switch-window--get-input
                             prompt-message minibuffer-num eobps)))
@@ -570,9 +609,11 @@ ask user for the window to select"
       (setq input-method-previous-message nil)
       ;; restore original cursor
       (setq-default cursor-type original-cursor)
-      ;; get those huge numbers away
-      (mapc 'kill-buffer buffers)
-      (set-window-configuration config)
+      ;; remove all label-buffers, useless now.
+      (mapc 'kill-buffer label-buffers)
+      ;; Restore window's buffer, point and dedicate state.
+      (dolist (w window-buffers)
+        (set-window-buffer (car w) (cdr w)))
       (dolist (w window-points)
         (set-window-point (car w) (cdr w)))
       (dolist (w dedicated-windows)
