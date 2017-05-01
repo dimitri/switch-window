@@ -67,16 +67,6 @@
 ;; (setq switch-window-minibuffer-shortcut "z")
 ;; #+END_EXAMPLE
 ;;
-;; *** I use text terminal, but I want *bigger* label.
-;; The only choice is using asciiart, which *draw* a bigger label
-;; with *small* ascii char.
-;;
-;; #+BEGIN_EXAMPLE
-;; (setq switch-window-asciiart-shortcut t)
-;; #+END_EXAMPLE
-;;
-;; [[./snapshots/switch-window-3.png]]
-;;
 ;; *** Switch-window seem to conflict with Exwm, how to do?
 ;; By default, switch-window get user's input with the help
 ;; of function `read-event', this approach does not work well
@@ -88,18 +78,40 @@
 ;; (setq switch-window-input-style 'minibuffer)
 ;; #+END_EXAMPLE
 ;;
-;; *** I want to make switch-window beautiful?
-;; All you should to do is setting the variable
-;; `switch-window-label-buffer-function', for example:
+;; *** I use text terminal, but I want *bigger* label.
+;; The only choice is using asciiart, which *draw* a bigger label
+;; with *small* ascii char.
+;;
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-shortcut-appearance 'asciiart)
+;; #+END_EXAMPLE
+;;
+;; [[./snapshots/switch-window-3.png]]
+;;
+;; *** I want to use image or icon as label.
+;; 1. Prepare your label images, rename them to:
+;;    1.png ... 9.png, a.png ... z.png.
+;;
+;;    You can use other image types supported by
+;;    emacs, please see: `image-types'.
+;; 2. Put all above images to directory:
+;;    `switch-window-image-directory'.
+;; 3. Set variable: `switch-window-shortcut-appearance'
+;;    #+BEGIN_EXAMPLE
+;;    (setq switch-window-shortcut-appearance 'image)
+;;    #+END_EXAMPLE
+;;
+;; [[./snapshots/switch-window-2.png]]
+;;
+;; *** `switch-window-shortcut-appearance' can't satisfy my need. how to do?
+;; All you should do is hacking you own label buffer function,
+;; for example: my-switch-window-label-buffer-function, and set
+;; the below variable:
 ;;
 ;; #+BEGIN_EXAMPLE
 ;; (setq switch-window-label-buffer-function
 ;;       'my-switch-window-label-buffer-function)
 ;; #+END_EXAMPLE
-;;
-;; The below are some switch-window user's showcases:
-;;
-;; [[./snapshots/switch-window-2.png]]
 ;;
 ;; *** Have any other similar package exist?
 ;; - [[https://github.com/abo-abo/ace-window][ace-window]]
@@ -153,6 +165,7 @@
 
 (require 'cl-lib) ; We use cl-loop and cl-subseq
 (require 'quail)
+(require 'pcase)
 (require 'switch-window-asciiart)
 
 (defgroup switch-window nil
@@ -192,9 +205,17 @@
   :type 'list
   :group 'switch-window)
 
-(defcustom switch-window-asciiart-shortcut nil
-  "Use asciiart style shortcut, this may be useful in text-only terminal."
-  :type 'boolean
+(defcustom switch-window-shortcut-appearance 'text
+  "Switch-window shortcut's appearance."
+  :type '(choice (const :tag "Show shortcut with text" 'text)
+                 (const :tag "Show shortcut with Ascii art." 'asciiart)
+                 (const :tag "Show shortcut with image." 'image))
+  :group 'switch-window)
+
+(defcustom switch-window-image-directory (locate-user-emacs-file "switch-window/image")
+  "If `switch-window-shortcut-appearance' set to 'image, image file
+will be found in this directory."
+  :type 'directory
   :group 'switch-window)
 
 (defcustom switch-window-label-buffer-function
@@ -279,19 +300,39 @@ from-current-window is not nil"
 (defun switch-window--create-label-buffer (buffer label scale)
   "The default label buffer create funcion."
   (with-current-buffer buffer
-    (if switch-window-asciiart-shortcut
-        (insert (replace-regexp-in-string
-                 "^\n" ""
-                 (nth (cl-position
-                       label
-                       (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
-                       :test #'equal)
-                      switch-window-asciiart)))
-      (if (fboundp 'text-scale-increase)
-          (progn (text-scale-increase scale)
-                 (insert label))
-        (insert (propertize
-                 label 'face (list :height (* 1.0 scale))))))
+    (pcase switch-window-shortcut-appearance
+      ('asciiart
+       (insert
+        (replace-regexp-in-string
+         "^\n" ""
+         (nth (cl-position
+               label
+               (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
+               :test #'equal)
+              switch-window-asciiart))))
+      ('text
+       (if (fboundp 'text-scale-increase)
+           (progn (text-scale-increase scale)
+                  (insert label))
+         (insert (propertize
+                  label 'face (list :height (* 1.0 scale))))))
+      ('image
+       (let ((types (cl-copy-seq image-types))
+             file)
+         (while types
+           (let* ((type (pop types))
+                  (file1 (format "%s%s.%S"
+                                 (file-name-as-directory switch-window-image-directory)
+                                 label type)))
+             (when (file-exists-p file1)
+               (setq file file1)
+               (setq types nil))))
+         (if (and file (display-images-p))
+             (insert-image-file (expand-file-name file))
+           (if (fboundp 'text-scale-increase)
+               (progn (text-scale-increase scale)
+                      (insert label))
+             (insert label))))))
     (goto-char (point-min))
     buffer))
 
