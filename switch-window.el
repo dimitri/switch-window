@@ -205,11 +205,6 @@
   :type 'list
   :group 'switch-window)
 
-(defcustom switch-window-asciiart-shortcut nil
-  "Use asciiart style shortcut, this may be useful in text-only terminal."
-  :type 'boolean
-  :group 'switch-window)
-
 (defcustom switch-window-shortcut-appearance 'text
   "Switch-window shortcut's appearance."
   :type '(choice (const :tag "Show shortcut with text" 'text)
