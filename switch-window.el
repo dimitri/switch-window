@@ -331,6 +331,7 @@ from-current-window is not nil"
   (with-current-buffer buffer
     (pcase switch-window-shortcut-appearance
       ('asciiart
+       (setq line-spacing nil)
        (insert
         (replace-regexp-in-string
          "^\n" ""
