@@ -77,7 +77,7 @@
 ;;
 ;; *** I want to select minibuffer with label "z".
 ;; #+BEGIN_EXAMPLE
-;; (setq switch-window-minibuffer-shortcut "z")
+;; (setq switch-window-minibuffer-shortcut ?z)
 ;; #+END_EXAMPLE
 ;;
 ;; *** Switch-window seem to conflict with Exwm, how to do?
@@ -286,7 +286,7 @@ increase or decrease window's number, for example:
   (cl-remove-if
    #'(lambda (key)
        (or (and switch-window-minibuffer-shortcut
-                (char-to-string switch-window-minibuffer-shortcut))
+                (equal key (char-to-string switch-window-minibuffer-shortcut)))
            (lookup-key switch-window-extra-map key)))
    (cond ((eq switch-window-shortcut-style 'qwerty)
           switch-window-qwerty-shortcuts)

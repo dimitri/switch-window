@@ -1,29 +1,29 @@
-- [What is switch-window](#org635d132)
-  - [Installation](#orgfd4285b)
-  - [Configure and Usage](#org1eba81f)
-  - [Tips](#orgc006993)
-    - [I want to select a window with "a-z" instead of "1-9".](#org2027249)
-    - [I want to let window to show bigger label.](#org762ca5e)
-    - [I want to **hide** window label when window's number < 3](#orgde87a69)
-    - [I want to select minibuffer with label "z".](#org092edbe)
-    - [Switch-window seem to conflict with Exwm, how to do?](#org57094d3)
-    - [I use text terminal, but I want **bigger** label.](#orgfbed0ef)
-    - [I want to use image or icon as label.](#org5f3360a)
-    - [\`switch-window-shortcut-appearance' can't satisfy my need. how to do?](#org65793c2)
-    - [Have any other similar package exist?](#org75163aa)
-  - [Changelog](#org58915ca)
-    - [1.5.0 - 2017-04-29](#org51ed153)
-    - [1.0.0 - 2015-01-14](#orga683b8a)
-    - [0.11 - 2013-09-14](#org339806f)
-    - [0.10 - 2011-06-19](#org86e0873)
-    - [0.9 - 2010-11-11 - emacs22 called, it wants some support](#orga5f02be)
-    - [0.8 - 2010-09-13 - 999](#org92d5814)
-    - [0.7 - 2010-08-23 - window-dedicated-p](#org1d82e51)
-    - [0.6 - 2010-08-12 - **Minibuf-1**](#org119ca9a)
-    - [0.5 - 2010-08-08 - Polishing](#orgcd03879)
+- [What is switch-window](#org2938f9a)
+  - [Installation](#org2f5a554)
+  - [Configure and Usage](#org94287fb)
+  - [Tips](#org70c84d7)
+    - [I want to select a window with "a-z" instead of "1-9".](#org5ffaf5e)
+    - [I want to let window to show bigger label.](#orgebb8049)
+    - [I want to **hide** window label when window's number < 3](#org602e1a6)
+    - [I want to select minibuffer with label "z".](#org5706658)
+    - [Switch-window seem to conflict with Exwm, how to do?](#org3fb1746)
+    - [I use text terminal, but I want **bigger** label.](#org19a0314)
+    - [I want to use image or icon as label.](#orgd1adce6)
+    - [\`switch-window-shortcut-appearance' can't satisfy my need. how to do?](#org1079be5)
+    - [Have any other similar package exist?](#org70e8937)
+  - [Changelog](#org4cafda9)
+    - [1.5.0 - 2017-04-29](#org0ed90d1)
+    - [1.0.0 - 2015-01-14](#orge433dcb)
+    - [0.11 - 2013-09-14](#org05b53be)
+    - [0.10 - 2011-06-19](#orga6bee83)
+    - [0.9 - 2010-11-11 - emacs22 called, it wants some support](#orgaf92a7e)
+    - [0.8 - 2010-09-13 - 999](#org65237f2)
+    - [0.7 - 2010-08-23 - window-dedicated-p](#orgf18116b)
+    - [0.6 - 2010-08-12 - **Minibuf-1**](#org6f61ce5)
+    - [0.5 - 2010-08-08 - Polishing](#orgbd342b5)
 
 
-<a id="org635d132"></a>
+<a id="org2938f9a"></a>
 
 # What is switch-window
 
@@ -32,7 +32,7 @@ switch-window is an emacs window switch tool, which offer a **visual** way to ch
 ![img](./snapshots/switch-window.png)
 
 
-<a id="orgfd4285b"></a>
+<a id="org2f5a554"></a>
 
 ## Installation
 
@@ -42,7 +42,7 @@ switch-window is an emacs window switch tool, which offer a **visual** way to ch
 Note: User can install switch-window with [El-Get](http://github.com/dimitri/el-get) too.
 
 
-<a id="org1eba81f"></a>
+<a id="org94287fb"></a>
 
 ## Configure and Usage
 
@@ -66,12 +66,12 @@ When switch-window is enabled, user can use the below five keys:
 If you want to customize this feature, please see variable: \`switch-window-extra-map'.
 
 
-<a id="orgc006993"></a>
+<a id="org70c84d7"></a>
 
 ## Tips
 
 
-<a id="org2027249"></a>
+<a id="org5ffaf5e"></a>
 
 ### I want to select a window with "a-z" instead of "1-9".
 
@@ -80,28 +80,28 @@ If you want to customize this feature, please see variable: \`switch-window-extr
           '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o"))
 
 
-<a id="org762ca5e"></a>
+<a id="orgebb8049"></a>
 
 ### I want to let window to show bigger label.
 
     (setq switch-window-increase 6) ;Increase or decrease this number.
 
 
-<a id="orgde87a69"></a>
+<a id="org602e1a6"></a>
 
 ### I want to **hide** window label when window's number < 3
 
     (setq switch-window-threshold 2)
 
 
-<a id="org092edbe"></a>
+<a id="org5706658"></a>
 
 ### I want to select minibuffer with label "z".
 
-    (setq switch-window-minibuffer-shortcut "z")
+    (setq switch-window-minibuffer-shortcut ?z)
 
 
-<a id="org57094d3"></a>
+<a id="org3fb1746"></a>
 
 ### Switch-window seem to conflict with Exwm, how to do?
 
@@ -110,7 +110,7 @@ By default, switch-window get user's input with the help of function \`read-even
     (setq switch-window-input-style 'minibuffer)
 
 
-<a id="orgfbed0ef"></a>
+<a id="org19a0314"></a>
 
 ### I use text terminal, but I want **bigger** label.
 
@@ -121,7 +121,7 @@ The only choice is using asciiart, which **draw** a bigger label with **small** 
 ![img](./snapshots/switch-window-3.png)
 
 
-<a id="org5f3360a"></a>
+<a id="orgd1adce6"></a>
 
 ### I want to use image or icon as label.
 
@@ -136,7 +136,7 @@ The only choice is using asciiart, which **draw** a bigger label with **small** 
 ![img](./snapshots/switch-window-2.png)
 
 
-<a id="org65793c2"></a>
+<a id="org1079be5"></a>
 
 ### \`switch-window-shortcut-appearance' can't satisfy my need. how to do?
 
@@ -146,19 +146,19 @@ All you should do is hacking you own label buffer function, for example: my-swit
           'my-switch-window-label-buffer-function)
 
 
-<a id="org75163aa"></a>
+<a id="org70e8937"></a>
 
 ### Have any other similar package exist?
 
 -   [ace-window](https://github.com/abo-abo/ace-window)
 
 
-<a id="org58915ca"></a>
+<a id="org4cafda9"></a>
 
 ## Changelog
 
 
-<a id="org51ed153"></a>
+<a id="org0ed90d1"></a>
 
 ### 1.5.0 - 2017-04-29
 
@@ -174,35 +174,35 @@ All you should do is hacking you own label buffer function, for example: my-swit
 -   User can customize switch-window label's appearance.
 
 
-<a id="orga683b8a"></a>
+<a id="orge433dcb"></a>
 
 ### 1.0.0 - 2015-01-14
 
 -   Please fixme.
 
 
-<a id="org339806f"></a>
+<a id="org05b53be"></a>
 
 ### 0.11 - 2013-09-14
 
 -   restore point to end-of-buffer for windows where it was the case after switching, fixing an anoying bug.
 
 
-<a id="org86e0873"></a>
+<a id="orga6bee83"></a>
 
 ### 0.10 - 2011-06-19
 
 -   implement M-x delete-other-window (thanks developernotes on github)
 
 
-<a id="orga5f02be"></a>
+<a id="orgaf92a7e"></a>
 
 ### 0.9 - 2010-11-11 - emacs22 called, it wants some support
 
 -   implement a propertize based hack to support emacs22
 
 
-<a id="org92d5814"></a>
+<a id="org65237f2"></a>
 
 ### 0.8 - 2010-09-13 - 999
 
@@ -210,7 +210,7 @@ All you should do is hacking you own label buffer function, for example: my-swit
 -   Use quail-keyboard-layout to choose single key labels for windows
 
 
-<a id="org1d82e51"></a>
+<a id="orgf18116b"></a>
 
 ### 0.7 - 2010-08-23 - window-dedicated-p
 
@@ -218,7 +218,7 @@ All you should do is hacking you own label buffer function, for example: my-swit
 -   fix timeout and RET handling wrt to not changing window selection
 
 
-<a id="org119ca9a"></a>
+<a id="org6f61ce5"></a>
 
 ### 0.6 - 2010-08-12 - **Minibuf-1**
 
@@ -227,7 +227,7 @@ All you should do is hacking you own label buffer function, for example: my-swit
 -   assorted cleanup
 
 
-<a id="orgcd03879"></a>
+<a id="orgbd342b5"></a>
 
 ### 0.5 - 2010-08-08 - Polishing
 
