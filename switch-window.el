@@ -91,6 +91,9 @@
 ;; (setq switch-window-input-style 'minibuffer)
 ;; #+END_EXAMPLE
 ;;
+;; Note: if you use minibuffer to get input, the feature about
+;; `switch-window-minibuffer-shortcut' will not work well.
+;;
 ;; *** I use text terminal, but I want *bigger* label.
 ;; The only choice is using asciiart, which *draw* a bigger label
 ;; with *small* ascii char.
