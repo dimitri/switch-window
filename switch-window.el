@@ -254,7 +254,9 @@ a window's label string, three arguments are required:
 (defcustom switch-window-minibuffer-shortcut nil
   "Whether to customize the minibuffer shortcut.
 Default to no customisation (nil), which will make the minibuffer take whatever the last short is.
-If a character is specified it will always use that key for the minibuffer shortcut."
+If a character is specified it will always use that key for the minibuffer shortcut.
+
+Note: this feature only works when the value of `switch-window-input-style' is 'default ."
   :type '(choice (const :tag "Off" nil)
                  (character "m"))
   :group 'switch-window)
