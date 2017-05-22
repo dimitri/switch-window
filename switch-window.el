@@ -335,7 +335,7 @@ from-current-window is not nil"
   "The default label buffer create funcion."
   (with-current-buffer buffer
     (pcase switch-window-shortcut-appearance
-      ('asciiart
+      (`asciiart
        (setq line-spacing nil)
        (insert
         (replace-regexp-in-string
@@ -345,13 +345,13 @@ from-current-window is not nil"
                (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
                :test #'equal)
               switch-window-asciiart))))
-      ('text
+      (`text
        (if (fboundp 'text-scale-increase)
            (progn (text-scale-increase scale)
                   (insert label))
          (insert (propertize
                   label 'face (list :height (* 1.0 scale))))))
-      ('image
+      (`image
        (let ((types (cl-copy-seq image-types))
              file)
          (while types
