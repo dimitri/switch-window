@@ -181,7 +181,6 @@
 
 (require 'cl-lib) ; We use cl-loop and cl-subseq
 (require 'quail)
-(require 'pcase)
 (require 'switch-window-asciiart)
 (require 'switch-window-mvborder)
 
@@ -334,40 +333,40 @@ from-current-window is not nil"
 (defun switch-window--create-label-buffer (buffer label scale)
   "The default label buffer create funcion."
   (with-current-buffer buffer
-    (pcase switch-window-shortcut-appearance
-      ('asciiart
-       (setq line-spacing nil)
-       (insert
-        (replace-regexp-in-string
-         "^\n" ""
-         (nth (cl-position
-               label
-               (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
-               :test #'equal)
-              switch-window-asciiart))))
-      ('text
-       (if (fboundp 'text-scale-increase)
-           (progn (text-scale-increase scale)
-                  (insert label))
-         (insert (propertize
-                  label 'face (list :height (* 1.0 scale))))))
-      ('image
-       (let ((types (cl-copy-seq image-types))
-             file)
-         (while types
-           (let* ((type (pop types))
-                  (file1 (format "%s%s.%S"
-                                 (file-name-as-directory switch-window-image-directory)
-                                 label type)))
-             (when (file-exists-p file1)
-               (setq file file1)
-               (setq types nil))))
-         (if (and file (display-images-p))
-             (insert-image-file (expand-file-name file))
-           (if (fboundp 'text-scale-increase)
-               (progn (text-scale-increase scale)
-                      (insert label))
-             (insert label))))))
+    (cond
+     ((eq switch-window-shortcut-appearance 'asciiart)
+      (setq line-spacing nil)
+      (insert
+       (replace-regexp-in-string
+        "^\n" ""
+        (nth (cl-position
+              label
+              (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
+              :test #'equal)
+             switch-window-asciiart))))
+     ((eq switch-window-shortcut-appearance 'text)
+      (if (fboundp 'text-scale-increase)
+          (progn (text-scale-increase scale)
+                 (insert label))
+        (insert (propertize
+                 label 'face (list :height (* 1.0 scale))))))
+     ((eq switch-window-shortcut-appearance 'image)
+      (let ((types (cl-copy-seq image-types))
+            file)
+        (while types
+          (let* ((type (pop types))
+                 (file1 (format "%s%s.%S"
+                                (file-name-as-directory switch-window-image-directory)
+                                label type)))
+            (when (file-exists-p file1)
+              (setq file file1)
+              (setq types nil))))
+        (if (and file (display-images-p))
+            (insert-image-file (expand-file-name file))
+          (if (fboundp 'text-scale-increase)
+              (progn (text-scale-increase scale)
+                     (insert label))
+            (insert label))))))
     (goto-char (point-min))
     buffer))
 
