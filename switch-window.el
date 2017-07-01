@@ -278,6 +278,9 @@ increase or decrease window's number, for example:
   :type 'boolean
   :group 'switch-window)
 
+;; Fix warn when compile switch-window with emacs-no-x
+(defvar image-types)
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys"
   (cl-loop with layout = (split-string quail-keyboard-layout "")
