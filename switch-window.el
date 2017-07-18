@@ -80,6 +80,20 @@
 ;; (setq switch-window-minibuffer-shortcut ?z)
 ;; #+END_EXAMPLE
 ;;
+;; *** I want to auto resize a window when switch to it
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-auto-resize-window t)
+;; (setq switch-window-default-window-size 0.8) ;80% of frame size
+;; #+END_EXAMPLE
+;;
+;; or
+;;
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-default-window-size '(0.8 . 0.6)) ;80% width and 60% height of frame
+;; #+END_EXAMPLE
+;;
+;; By the way, you can use package [[https://github.com/roman/golden-ratio.el][golden-ratio]] also.
+;;
 ;; *** Switch-window seem to conflict with Exwm, how to do?
 ;; By default, switch-window get user's input with the help
 ;; of function `read-event', this approach does not work well
@@ -259,6 +273,25 @@ Note: this feature only works when the value of `switch-window-input-style' is '
   :type '(choice (const :tag "Off" nil)
                  (character "m"))
   :group 'switch-window)
+
+(defcustom switch-window-auto-resize-window nil
+  "Auto resize window's size when switch to a window."
+  :group 'switch-window
+  :type 'boolean)
+
+(defcustom switch-window-default-window-size 0.7
+  "The default auto resize window's size.
+1. If its value is nil, disable auto resize feature.
+2. If its value is a number (0<x<1), resize selected window to % of frame size.
+3. If its value is a number (0<x<1) cons, resize selected window to
+   car% of frame width and cdr% of frame height."
+  :group 'switch-window)
+
+(defcustom switch-window-finish-hook nil
+  "A hook, run when `switch-window--then' is finishd.
+Its hook function have no arguments."
+  :group 'switch-window
+  :type 'hook)
 
 (defvar switch-window-extra-map
   (let ((map (make-sparse-keymap)))
@@ -507,7 +540,10 @@ then call `function2'.
       (when (and return-original-window
                  (window-live-p orig-window))
         (select-window orig-window))
-      (switch-window--restore-eobp eobps))))
+      (switch-window--restore-eobp eobps)))
+  (when  switch-window-auto-resize-window
+    (call-interactively #'switch-window-auto-resize-window))
+  (run-hooks 'switch-window-finish-hook))
 
 (defun switch-window--get-input (prompt-message minibuffer-num eobps)
   "Get user's input with the help of `read-event'."
@@ -627,6 +663,38 @@ ask user for the window to select"
       (dolist (w dedicated-windows)
         (set-window-dedicated-p (car w) (cdr w))))
     key))
+
+(defun switch-window-auto-resize-window ()
+  "Auto resize window's size when switch to window."
+  (interactive)
+  (when (and (not (window-minibuffer-p))
+             (not (one-window-p)))
+    (let ((arg switch-window-default-window-size)
+          n1 n2)
+      (cond ((and (numberp arg) (< 0 arg 1))
+             (setq n1 arg)
+             (setq n2 arg))
+            ((and (consp arg)
+                  (numberp (car arg))
+                  (numberp (cdr arg))
+                  (< 0 (car arg) 1)
+                  (< 0 (cdr arg) 1))
+             (setq n1 (car arg))
+             (setq n2 (cdr arg)))
+            (t (setq n1 nil)
+               (setq n2 nil)
+               (message "The value of `switch-window-default-window-size' is invalid.")))
+      (when (and n1 n2)
+        (with-selected-window (selected-window)
+          (let ((ncol (floor (- (* (frame-width) n1)
+                                (window-width))))
+                (nrow (floor (- (* (frame-height) n2)
+                                (window-height)))))
+            (when (window-resizable-p (selected-window) nrow)
+              (enlarge-window nrow))
+            (when (window-resizable-p (selected-window) ncol t)
+              (enlarge-window ncol t))))))))
+
 
 (provide 'switch-window)
 ;;; switch-window.el ends here
