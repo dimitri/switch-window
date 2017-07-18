@@ -316,6 +316,9 @@ increase or decrease window's number, for example:
   :type 'boolean
   :group 'switch-window)
 
+(defvar switch-window--temp-disable-auto-resize nil
+  "Disable auto resize window feature temporarily.")
+
 ;; Fix warn when compile switch-window with emacs-no-x
 (defvar image-types)
 
@@ -546,10 +549,12 @@ then call `function2'.
                  (window-live-p orig-window))
         (select-window orig-window))
       (switch-window--restore-eobp eobps)))
-  (when (if (functionp switch-window-auto-resize-window)
-            (funcall switch-window-auto-resize-window)
-          switch-window-auto-resize-window)
+  (when (and (not switch-window--temp-disable-auto-resize)
+             (if (functionp switch-window-auto-resize-window)
+                 (funcall switch-window-auto-resize-window)
+               switch-window-auto-resize-window))
     (call-interactively #'switch-window-auto-resize-window))
+  (setq switch-window--temp-disable-auto-resize nil)
   (run-hooks 'switch-window-finish-hook))
 
 (defun switch-window--get-input (prompt-message minibuffer-num eobps)
@@ -578,7 +583,11 @@ then call `function2'.
                                 (char-to-string input))))
               (cond
                (extra-function
-                (call-interactively extra-function))
+                (call-interactively extra-function)
+                ;; Commands in `switch-window-extra-map' mainly are window-resize commands.
+                ;; If we use these commands, theirs effects should not be override by
+                ;; auto-resize feature.
+                (setq switch-window--temp-disable-auto-resize t))
                (pos (setq key (1+ pos)))
                (t (switch-window--restore-eobp eobps)
                   (keyboard-quit))))))))
@@ -614,7 +623,11 @@ then call `function2'.
                  (lookup-key switch-window-extra-map input)))
             (cond
              (extra-function
-              (call-interactively extra-function))
+              (call-interactively extra-function)
+              ;; Commands in `switch-window-extra-map' mainly are window resize commands.
+              ;; If we use these commands, theirs effects should not be override by
+              ;; auto-resize feature.
+              (setq switch-window--temp-disable-auto-resize t))
              (pos (setq key (1+ pos)))
              (t (switch-window--restore-eobp eobps)))))))
     key))
