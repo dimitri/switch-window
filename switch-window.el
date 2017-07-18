@@ -52,9 +52,15 @@
 ;; | "j" | Move the border left  |
 ;; | "k" | Move the border right |
 ;; | "b" | Balance windows       |
+;; |"SPC"| Resume auto-resize    |
 ;;
 ;; If you want to customize this feature, please see variable:
 ;; `switch-window-extra-map'.
+;;
+;; Note: if you use auto-resize window feature, you *must* know
+;; that when you execute above window operate commands, auto-resize
+;; feature will be disabled temporarily, you should use above "SPC"
+;; key to resume.
 ;;
 ;; ** Tips
 ;;
@@ -305,6 +311,7 @@ Its hook function have no arguments."
     (define-key map (kbd "j") 'switch-window-mvborder-left)
     (define-key map (kbd "l") 'switch-window-mvborder-right)
     (define-key map (kbd "b") 'balance-windows)
+    (define-key map (kbd "SPC") 'switch-window-resume-auto-resize-window)
     map)
   "Extra keymap for switch-window input.
 Note: at the moment, it cannot bind commands, which will
@@ -554,7 +561,6 @@ then call `function2'.
                  (funcall switch-window-auto-resize-window)
                switch-window-auto-resize-window))
     (call-interactively #'switch-window-auto-resize-window))
-  (setq switch-window--temp-disable-auto-resize nil)
   (run-hooks 'switch-window-finish-hook))
 
 (defun switch-window--get-input (prompt-message minibuffer-num eobps)
@@ -587,7 +593,8 @@ then call `function2'.
                 ;; Commands in `switch-window-extra-map' mainly are window-resize commands.
                 ;; If we use these commands, theirs effects should not be override by
                 ;; auto-resize feature.
-                (setq switch-window--temp-disable-auto-resize t))
+                (unless (eq extra-function 'switch-window-resume-auto-resize-window)
+                  (setq switch-window--temp-disable-auto-resize t)))
                (pos (setq key (1+ pos)))
                (t (switch-window--restore-eobp eobps)
                   (keyboard-quit))))))))
@@ -627,7 +634,8 @@ then call `function2'.
               ;; Commands in `switch-window-extra-map' mainly are window resize commands.
               ;; If we use these commands, theirs effects should not be override by
               ;; auto-resize feature.
-              (setq switch-window--temp-disable-auto-resize t))
+              (unless (eq extra-function 'switch-window-resume-auto-resize-window)
+                (setq switch-window--temp-disable-auto-resize t)))
              (pos (setq key (1+ pos)))
              (t (switch-window--restore-eobp eobps)))))))
     key))
@@ -683,6 +691,12 @@ ask user for the window to select"
       (dolist (w dedicated-windows)
         (set-window-dedicated-p (car w) (cdr w))))
     key))
+
+(defun switch-window-resume-auto-resize-window ()
+  "Resume auto resize window feature, which is temporarily
+disabled by commands in `switch-window-extra-map'."
+  (interactive)
+  (setq switch-window--temp-disable-auto-resize nil))
 
 (defun switch-window-auto-resize-window ()
   "Auto resize window's size when switch to window."
