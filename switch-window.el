@@ -561,6 +561,12 @@ then call `function2'.
                  (funcall switch-window-auto-resize-window)
                switch-window-auto-resize-window))
     (call-interactively #'switch-window-auto-resize-window))
+  (when (and switch-window-auto-resize-window
+             switch-window--temp-disable-auto-resize)
+    (message
+     (substitute-command-keys
+      "Switch-window: resume auto-resize with `\\[switch-window-resume-auto-resize-window]'"))
+    (message ""))
   (run-hooks 'switch-window-finish-hook))
 
 (defun switch-window--get-input (prompt-message minibuffer-num eobps)
