@@ -86,9 +86,11 @@
 ;; (setq switch-window-default-window-size 0.8) ;80% of frame size
 ;; #+END_EXAMPLE
 ;;
-;; or
-;;
+;; Advanced usage:
 ;; #+BEGIN_EXAMPLE
+;; (setq switch-window-auto-resize-window
+;;       (lambda ()
+;;         (equal (buffer-name) "*scratch*"))) ;when return t, run auto switch
 ;; (setq switch-window-default-window-size '(0.8 . 0.6)) ;80% width and 60% height of frame
 ;; #+END_EXAMPLE
 ;;
@@ -275,9 +277,12 @@ Note: this feature only works when the value of `switch-window-input-style' is '
   :group 'switch-window)
 
 (defcustom switch-window-auto-resize-window nil
-  "Auto resize window's size when switch to a window."
-  :group 'switch-window
-  :type 'boolean)
+  "Auto resize window's size when switch to a window.
+1. If its value is t, auto resize the selected window.
+2. If its value is a function without arguments,
+   when the returned value it non-nil, auto resize
+   the selected window."
+  :group 'switch-window)
 
 (defcustom switch-window-default-window-size 0.7
   "The default auto resize window's size.
@@ -541,7 +546,9 @@ then call `function2'.
                  (window-live-p orig-window))
         (select-window orig-window))
       (switch-window--restore-eobp eobps)))
-  (when  switch-window-auto-resize-window
+  (when (if (functionp switch-window-auto-resize-window)
+            (funcall switch-window-auto-resize-window)
+          switch-window-auto-resize-window)
     (call-interactively #'switch-window-auto-resize-window))
   (run-hooks 'switch-window-finish-hook))
 
