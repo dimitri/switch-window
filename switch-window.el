@@ -260,6 +260,12 @@ Note: this feature only works when the value of `switch-window-input-style' is '
                  (character "m"))
   :group 'switch-window)
 
+(defcustom switch-window-finish-hook nil
+  "A hook, run when `switch-window--then' is finishd.
+Its hook function have no arguments."
+  :group 'switch-window
+  :type 'hook)
+
 (defvar switch-window-extra-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "i") 'switch-window-mvborder-up)
@@ -507,7 +513,8 @@ then call `function2'.
       (when (and return-original-window
                  (window-live-p orig-window))
         (select-window orig-window))
-      (switch-window--restore-eobp eobps))))
+      (switch-window--restore-eobp eobps)))
+  (run-hooks 'switch-window-finish-hook))
 
 (defun switch-window--get-input (prompt-message minibuffer-num eobps)
   "Get user's input with the help of `read-event'."
