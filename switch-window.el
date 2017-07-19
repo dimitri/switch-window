@@ -699,7 +699,7 @@ ask user for the window to select"
                  #'switch-window--mouse-auto-resize-window)))
 
 (defun switch-window--mouse-auto-resize-window ()
-  "Internal function of `switch-window-mouse-auto-resize-window'."
+  "Auto resize window when switch window with mouse."
   (run-at-time 0.1 nil #'switch-window--auto-resize-window))
 
 (defun switch-window-resume-auto-resize-window ()
