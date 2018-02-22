@@ -41,6 +41,16 @@
 ;; (global-set-key (kbd "C-x 2") 'switch-window-then-split-below)
 ;; (global-set-key (kbd "C-x 3") 'switch-window-then-split-right)
 ;; (global-set-key (kbd "C-x 0") 'switch-window-then-delete)
+;;
+;; (global-set-key (kbd "C-x 4 d") 'switch-window-then-dired)
+;; (global-set-key (kbd "C-x 4 f") 'switch-window-then-find-file)
+;; (global-set-key (kbd "C-x 4 m") 'switch-window-then-compose-mail)
+;; (global-set-key (kbd "C-x 4 r") 'switch-window-then-find-file-read-only)
+;;
+;; (global-set-key (kbd "C-x 4 C-f") 'switch-window-then-find-file)
+;; (global-set-key (kbd "C-x 4 C-o") 'switch-window-then-display-buffer)
+;;
+;; (global-set-key (kbd "C-x 4 0") 'switch-window-then-kill-buffer)
 ;; #+END_EXAMPLE
 ;;
 ;; When switch-window is enabled, user can use the below five keys:
@@ -529,6 +539,82 @@ ask user for the window where move to"
     (if arg
         (select-window window1)
       (select-window window2))))
+
+;;;###autoload
+(defun switch-window-then-find-file ()
+  "Select a window, then find a file in it.
+
+Designed to replace `find-file-other-window'."
+  (interactive)
+  (switch-window--then-other-window
+   "Find file in window: "
+   '(helm-find-files find-file)))
+
+;;;###autoload
+(defun switch-window-then-find-file-read-only ()
+  "Select a window, then find a file in it, read-only.
+
+Designed to replace `find-file-read-only-other-window'."
+  (interactive)
+  (switch-window--then-other-window
+   "Find file read-only in window: "
+   '(find-file-read-only)))
+
+;;;###autoload
+(defun switch-window-then-display-buffer ()
+  "Select a window, display a buffer in it, then return.
+
+Designed to replace `display-buffer'."
+  (interactive)
+  (let ((original-window (selected-window)))
+    (switch-window--then-other-window
+     "Show buffer in window: "
+     '(helm-mini switch-to-buffer))
+    (select-window original-window)))
+
+;;;###autoload
+(defun switch-window-then-kill-buffer ()
+  "Select a window, then kill its buffer, then close it.
+
+Designed to replace `kill-buffer-and-window'."
+  (interactive)
+  (switch-window--then-other-window
+   "Window to kill: "
+   '(kill-buffer-and-window)))
+
+;;;###autoload
+(defun switch-window-then-dired ()
+  "Select a window, then dired in it.
+
+Designed to replace `dired-other-window'."
+  (interactive)
+  (switch-window--then-other-window
+   "Dired in window: "
+   '(dired)))
+
+;;;###autoload
+(defun switch-window-then-compose-mail ()
+  "Select a window, then start composing mail in it.
+
+Designed to replace `compose-mail-other-window'."
+  (interactive)
+  (switch-window--then-other-window
+   "Compose mail in window: "
+   '(compose-mail)))
+
+(defun switch-window--then-other-window (prompt candidate-functions)
+  "Select a window (or create a new one if no others) and run the
+first defined function in `candidate-functions' (a list of
+symbols that potentially name interactive functions)."
+  (let ((f (find-if #'fboundp candidate-functions)))
+    (switch-window--then
+     prompt
+     (lambda ()
+       (select-window (if (one-window-p) (split-window-right) (next-window)))
+       (call-interactively f))
+     (lambda () (call-interactively f))
+     nil
+     2)))
 
 (defun switch-window--then (prompt function1 &optional function2
                                    return-original-window threshold)
