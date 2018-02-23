@@ -10,7 +10,7 @@
 ;; Git-URL: https://github.com/dimitri/switch-window.git
 ;; Version: 1.5.0
 ;; Created: 2010-04-30
-;; Keywords: window navigation
+;; Keywords: convenience
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
 ;; Package-Requires: ((emacs "24"))
 ;;
