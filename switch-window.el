@@ -1,4 +1,4 @@
-;;; switch-window.el --- A *visual* way to choose a window to switch to
+;;; switch-window.el --- A *visual* way to switch window        -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2010-2017  Dimitri Fontaine
 ;;               2016-2017  Feng Shu

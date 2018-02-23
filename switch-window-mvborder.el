@@ -1,4 +1,4 @@
-;;; switch-window-mvborder.el --- Move border of emacs window.
+;;; switch-window-mvborder.el --- Move border of emacs window.     -*- lexical-binding: t -*-
 
 ;; * Header
 ;; Copyright (c) the unknown original author

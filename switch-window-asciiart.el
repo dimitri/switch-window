@@ -1,4 +1,4 @@
-;;; switch-window-asciiart.el --- switch-window asciiart label
+;;; switch-window-asciiart.el --- switch-window asciiart label  -*- lexical-binding: t -*-
 ;;
 ;; Copyright (C) 2017  Feng Shu
 ;;
