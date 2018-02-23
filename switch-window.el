@@ -315,6 +315,22 @@ Its hook function have no arguments."
   :group 'switch-window
   :type 'hook)
 
+(defcustom switch-window-preferred 'default
+  "Prefer default commands or helm/ivy style commands."
+  :type '(choice (const :tag "Emacs default" 'default)
+                 (const :tag "Helm" 'helm)
+                 (const :tag "Ivy or Counsel" 'ivy))
+  :group 'switch-window)
+
+(defvar switch-window-preferred-alist
+  '((helm
+     (find-file . helm-find-files)
+     (switch-to-buffer . helm-mini))
+    (ivy
+     (find-file . counsel-find-files)
+     (switch-to-buffer . ivy-switch-buffer)))
+  "The settings of `switch-window-preferred'.")
+
 (defvar switch-window-extra-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "i") 'switch-window-mvborder-up)
@@ -548,7 +564,7 @@ Designed to replace `find-file-other-window'."
   (interactive)
   (switch-window--then-other-window
    "Find file in window: "
-   '(helm-find-files find-file)))
+   #'find-file))
 
 ;;;###autoload
 (defun switch-window-then-find-file-read-only ()
@@ -558,7 +574,7 @@ Designed to replace `find-file-read-only-other-window'."
   (interactive)
   (switch-window--then-other-window
    "Find file read-only in window: "
-   '(find-file-read-only)))
+   #'find-file-read-only))
 
 ;;;###autoload
 (defun switch-window-then-display-buffer ()
@@ -569,7 +585,7 @@ Designed to replace `display-buffer'."
   (let ((original-window (selected-window)))
     (switch-window--then-other-window
      "Show buffer in window: "
-     '(helm-mini switch-to-buffer))
+     #'switch-to-buffer)
     (select-window original-window)))
 
 ;;;###autoload
@@ -580,7 +596,7 @@ Designed to replace `kill-buffer-and-window'."
   (interactive)
   (switch-window--then-other-window
    "Window to kill: "
-   '(kill-buffer-and-window)))
+   #'kill-buffer-and-window))
 
 ;;;###autoload
 (defun switch-window-then-dired ()
@@ -590,7 +606,7 @@ Designed to replace `dired-other-window'."
   (interactive)
   (switch-window--then-other-window
    "Dired in window: "
-   '(dired)))
+   #'dired))
 
 ;;;###autoload
 (defun switch-window-then-compose-mail ()
@@ -600,17 +616,27 @@ Designed to replace `compose-mail-other-window'."
   (interactive)
   (switch-window--then-other-window
    "Compose mail in window: "
-   '(compose-mail)))
+   #'compose-mail))
 
-(defun switch-window--then-other-window (prompt candidate-functions)
+(defun switch-window--get-preferred-function (function)
+  "Get the preferred function based on `switch-window-preferred'."
+  (or (cdr (assq function
+                 (cdr (assq switch-window-preferred
+                            switch-window-preferred-alist))))
+      function))
+
+(defun switch-window--then-other-window (prompt function)
   "Select a window (or create a new one if no others) and run the
 first defined function in `candidate-functions' (a list of
 symbols that potentially name interactive functions)."
-  (let ((f (cl-find-if #'fboundp candidate-functions)))
+  (let ((f (switch-window--get-preferred-function function)))
     (switch-window--then
      prompt
      (lambda ()
-       (select-window (if (one-window-p) (split-window-right) (next-window)))
+       (select-window
+        (if (one-window-p)
+            (split-window-right)
+          (next-window)))
        (call-interactively f))
      (lambda () (call-interactively f))
      nil
