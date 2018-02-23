@@ -19,7 +19,7 @@
 ;;; Commentary:
 ;;
 ;; * What is switch-window                       :README:
-;; switch-window is an emacs window switch tool, which offer a
+;; switch-window is an Emacs window switch tool, which offer a
 ;; *visual* way to choose a window to switch to, delete, split
 ;; or other operations.
 ;;
@@ -142,7 +142,7 @@
 ;;    1.png ... 9.png, a.png ... z.png.
 ;;
 ;;    You can use other image types supported by
-;;    emacs, please see: `image-types'.
+;;    Emacs, please see: `image-types'.
 ;; 2. Put all above images to directory:
 ;;    `switch-window-image-directory'.
 ;; 3. Set variable: `switch-window-shortcut-appearance'
@@ -152,7 +152,7 @@
 ;;
 ;; [[./snapshots/switch-window-2.png]]
 ;;
-;; *** `switch-window-shortcut-appearance' can't satisfy my need. how to do?
+;; *** `switch-window-shortcut-appearance' can't satisfy my need.  how to do?
 ;; All you should do is hacking you own label buffer function,
 ;; for example: my-switch-window-label-buffer-function, and set
 ;; the below variable:
@@ -222,27 +222,27 @@
   :group 'convenience)
 
 (defcustom switch-window-increase 12
-  "How much to increase text size in the window numbering, maximum"
+  "How much to increase text size in the window numbering, maximum."
   :type 'integer
   :group 'switch-window)
 
 (defcustom switch-window-timeout 5
-  "After this many seconds, cancel the window switching"
+  "After this many seconds, cancel the window switching."
   :type 'integer
   :group 'switch-window)
 
 (defcustom switch-window-threshold 2
-  "Only active switch-window after this many windows open"
+  "Only active ‘switch-window’ after this many windows open."
   :type 'integer
   :group 'switch-window)
 
 (defcustom switch-window-relative nil
-  "Control the ordering of windows, when true this depends on current-window"
+  "Control the ordering of windows, when true this depends on current-window."
   :type 'boolean
   :group 'switch-window)
 
 (defcustom switch-window-shortcut-style 'quail
-  "Use either keyboard layout or alphabet shortcut style"
+  "Use either keyboard layout or alphabet shortcut style."
   :type '(choice (const :tag "Alphabet" 'alphabet)
                  (const :tag "Keyboard Layout" 'quail)
                  (const :tag "Qwerty Homekeys Layout" 'qwerty))
@@ -250,7 +250,7 @@
 
 (defcustom switch-window-qwerty-shortcuts
   '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o" "g" "h" "r" "q" "u" "v" "n")
-  "The list of characters used when switch-window-shortcut-style is 'qwerty'"
+  "The list of characters used when ‘switch-window-shortcut-style’ is 'qwerty'."
   :type 'list
   :group 'switch-window)
 
@@ -262,14 +262,16 @@
   :group 'switch-window)
 
 (defcustom switch-window-image-directory (locate-user-emacs-file "switch-window/image")
-  "If `switch-window-shortcut-appearance' set to 'image, image file
+  "Switch-window image directory.
+If `switch-window-shortcut-appearance' set to 'image, image file
 will be found in this directory."
   :type 'directory
   :group 'switch-window)
 
 (defcustom switch-window-label-buffer-function
   'switch-window--create-label-buffer
-  "The function is used to prepare a temp buffer to diplay
+  "Switch-window's label buffer function.
+This function is used to prepare a temp buffer to diplay
 a window's label string, three arguments are required:
 1. buffer  Label string will be inserted into this buffer.
 2. label   The window's shortcut string.
@@ -285,10 +287,12 @@ a window's label string, three arguments are required:
 
 (defcustom switch-window-minibuffer-shortcut nil
   "Whether to customize the minibuffer shortcut.
-Default to no customisation (nil), which will make the minibuffer take whatever the last short is.
-If a character is specified it will always use that key for the minibuffer shortcut.
+Default to no customisation (nil), which will make the minibuffer
+take whatever the last short is.  If a character is specified
+it will always use that key for the minibuffer shortcut.
 
-Note: this feature only works when the value of `switch-window-input-style' is 'default ."
+Note: this feature only works when the value
+of `switch-window-input-style' is 'default ."
   :type '(choice (const :tag "Off" nil)
                  (character "m"))
   :group 'switch-window)
@@ -340,13 +344,13 @@ Its hook function have no arguments."
     (define-key map (kbd "b") 'balance-windows)
     (define-key map (kbd "SPC") 'switch-window-resume-auto-resize-window)
     map)
-  "Extra keymap for switch-window input.
+  "Extra keymap for ‘switch-window’ input.
 Note: at the moment, it cannot bind commands, which will
 increase or decrease window's number, for example:
 `split-window-below' `split-window-right' `maximize'.")
 
 (defcustom switch-window-configuration-change-hook-inhibit nil
-  "Whether inhibit `window-configuration-change-hook' during switch-window."
+  "Whether inhibit `window-configuration-change-hook' during ‘switch-window’."
   :type 'boolean
   :group 'switch-window)
 
@@ -357,14 +361,14 @@ increase or decrease window's number, for example:
 (defvar image-types)
 
 (defun switch-window--list-keyboard-keys ()
-  "Return a list of current keyboard layout keys"
+  "Return a list of current keyboard layout keys."
   (cl-loop with layout = (split-string quail-keyboard-layout "")
            for row from 1 to 4
            nconc (cl-loop for col from 1 to 10
                           collect (nth (+ 1 (* 2 col) (* 30 row)) layout))))
 
 (defun switch-window--list-keys ()
-  "Return a list of keys to use depending on `switch-window-shortcut-style'"
+  "Return a list of keys to use depending on `switch-window-shortcut-style'."
   (cl-remove-if
    #'(lambda (key)
        (or (and switch-window-minibuffer-shortcut
@@ -378,7 +382,7 @@ increase or decrease window's number, for example:
          (t (switch-window--list-keyboard-keys)))))
 
 (defun switch-window--enumerate ()
-  "Return a list of one-letter strings to label current windows"
+  "Return a list of one-letter strings to label current windows."
   (cl-loop for w in (switch-window--list)
            for x in (switch-window--list-keys)
            collect (if (and switch-window-minibuffer-shortcut
@@ -387,18 +391,18 @@ increase or decrease window's number, for example:
                      x)))
 
 (defun switch-window--label (num)
-  "Return the label to use for a given window number"
+  "Return the label to use for a given window NUM."
   (nth (- num 1) (switch-window--enumerate)))
 
 (defun switch-window--list (&optional from-current-window)
-  "list windows for current frame, starting at top left unless
-from-current-window is not nil"
+  "List windows for current frame.
+It will start at top left unless FROM-CURRENT-WINDOW is not nil"
   (if (or from-current-window switch-window-relative)
       (window-list nil nil)
     (window-list nil nil (frame-first-window))))
 
 (defun switch-window--display-number (win num)
-  "prepare a temp buffer to diplay in the window while choosing"
+  "Prepare a temp buffer to diplay NUM in the window WIN while choosing."
   (let* ((label (switch-window--label num))
          (buffer (get-buffer-create
                   (format " *%s: %s*"
@@ -409,7 +413,7 @@ from-current-window is not nil"
     buffer))
 
 (defun switch-window--create-label-buffer (buffer label scale)
-  "The default label buffer create funcion."
+  "The default LABEL BUFFER create funcion."
   (with-current-buffer buffer
     (cond
      ((eq switch-window-shortcut-appearance 'asciiart)
@@ -449,15 +453,15 @@ from-current-window is not nil"
     buffer))
 
 (defun switch-window--jump-to-window (index)
-  "Jump to the window which index is `index'."
+  "Jump to the window depend on INDEX."
   (cl-loop for c from 1
            for win in (switch-window--list)
            until (= c index)
            finally (select-window win)))
 
 (defun switch-window--list-eobp ()
-  "Return a list of all the windows where `eobp' is currently
-   true so that we can restore that important property (think
+  "Return a list of all the windows where `eobp' is currently true.
+so that we can restore that important property (think
    auto scrolling) after switching."
   (cl-loop for win in (switch-window--list)
            when (with-current-buffer (window-buffer win) (eobp))
@@ -473,8 +477,8 @@ from-current-window is not nil"
 
 ;;;###autoload
 (defun switch-window-then-delete ()
-  "Display an overlay in each window showing a unique key, then
-ask user which window to delete"
+  "Display an overlay in each window showing a unique key.
+In the mean time, user will be asked to choose the window deleted."
   (interactive)
   (switch-window--then
    "Delete window: "
@@ -487,8 +491,8 @@ ask user which window to delete"
 
 ;;;###autoload
 (defun switch-window-then-maximize ()
-  "Display an overlay in each window showing a unique key, then
-ask user which window to maximize"
+  "Display an overlay in each window showing a unique key.
+In the mean time, ask user which window to maximize"
   (interactive)
   (switch-window--then
    "Maximize window: "
@@ -497,8 +501,8 @@ ask user which window to maximize"
 
 ;;;###autoload
 (defun switch-window ()
-  "Display an overlay in each window showing a unique key, then
-ask user for the window where move to"
+  "Display an overlay in each window showing a unique key.
+In the mean time, ask user for the window where move to"
   (interactive)
   (switch-window--then
    "Move to window: "
@@ -506,7 +510,8 @@ ask user for the window where move to"
 
 ;;;###autoload
 (defun switch-window-then-split-horizontally (arg)
-  "Select a window then split it horizontally."
+  "Select a window then split it horizontally.
+Argument ARG ."
   (interactive "P")
   (switch-window--then
    "Horiz-split window: "
@@ -515,7 +520,8 @@ ask user for the window where move to"
 
 ;;;###autoload
 (defun switch-window-then-split-vertically (arg)
-  "Select a window then split it vertically."
+  "Select a window then split it vertically.
+Argument ARG ."
   (interactive "P")
   (switch-window--then
    "Verti-split window: "
@@ -524,7 +530,8 @@ ask user for the window where move to"
 
 ;;;###autoload
 (defun switch-window-then-split-below (arg)
-  "Select a window then split it with split-window-below's mode."
+  "Select a window then split it with split-window-below's mode.
+TODO: Argument ARG."
   (interactive "P")
   (switch-window--then
    "Below-split window: "
@@ -533,7 +540,8 @@ ask user for the window where move to"
 
 ;;;###autoload
 (defun switch-window-then-split-right (arg)
-  "Select a window then split it with split-window-right's mode."
+  "Select a window then split it with split-window-right's mode.
+TODO: Argument ARG ."
   (interactive "P")
   (switch-window--then
    "Right-split window: "
@@ -542,7 +550,8 @@ ask user for the window where move to"
 
 ;;;###autoload
 (defun switch-window-then-swap-buffer (arg)
-  "Select a window then swap it buffer with current window's buffer."
+  "Select a window then swap it buffer with current window's buffer.
+TODO: Argument ARG."
   (interactive "P")
   (let ((buffer1 (window-buffer))
         (window1 (get-buffer-window))
@@ -619,16 +628,14 @@ Designed to replace `compose-mail-other-window'."
    #'compose-mail))
 
 (defun switch-window--get-preferred-function (function)
-  "Get the preferred function based on `switch-window-preferred'."
+  "Get the preferred FUNCTION based on `switch-window-preferred'."
   (or (cdr (assq function
                  (cdr (assq switch-window-preferred
                             switch-window-preferred-alist))))
       function))
 
 (defun switch-window--then-other-window (prompt function)
-  "Select a window (or create a new one if no others) and run the
-first defined function in `candidate-functions' (a list of
-symbols that potentially name interactive functions)."
+  "PROMPT a question and let use select or create a window to run FUNCTION."
   (let ((f (switch-window--get-preferred-function function)))
     (switch-window--then
      prompt
@@ -644,15 +651,17 @@ symbols that potentially name interactive functions)."
 
 (defun switch-window--then (prompt function1 &optional function2
                                    return-original-window threshold)
-  "If the number of opened window is less than `threshold', call `function1'
-in current window, otherwise, switch to the window assocated with the typed key,
-then call `function2'.
+  "Prompt a PROMPT, let user switch to a window to do something.
 
-1. `function1' and `function2' are functions with no arguments.
-2. When `return-original-window' is t, switch to original window
-   after `function2' is called.
-3. When `threshold' is not a number, use the value of
-   `switch-window-threshold' instead."
+If the number of opened window is less than THRESHOLD,
+call FUNCTION1 in current window, otherwise, switch to
+the window assocated with the typed key, then call FUNCTION2.
+
+1. FUNCTION1 and FUNCTION2 are functions with no arguments.
+2. When RETURN-ORIGINAL-WINDOW is t, switch to original window
+   after FUNCTION2 is called.
+3. When THRESHOLD is not a number, use the value of
+   ‘switch-window-threshold’ instead."
   (if (<= (length (window-list))
           (if (numberp threshold)
               threshold
@@ -673,7 +682,8 @@ then call `function2'.
   (run-hooks 'switch-window-finish-hook))
 
 (defun switch-window--get-input (prompt-message minibuffer-num eobps)
-  "Get user's input with the help of `read-event'."
+  "Get user's input with the help of `read-event'.
+Arguments: PROMPT-MESSAGE MINIBUFFER-NUM EOBPS."
   (let (key)
     (while (not key)
       (let ((input (event-basic-type
@@ -710,7 +720,8 @@ then call `function2'.
     key))
 
 (defun switch-window--get-minibuffer-input (prompt-message minibuffer-num eobps)
-  "Get user's input with the help of `read-from-minibuffer'."
+  "Get user's input with the help of `read-from-minibuffer'.
+Arguments: PROMPT-MESSAGE MINIBUFFER-NUM EOBPS."
   (let (key)
     (while (not key)
       (let ((input (read-from-minibuffer
@@ -750,8 +761,9 @@ then call `function2'.
     key))
 
 (defun switch-window--prompt (prompt-message)
-  "Display an overlay in each window showing a unique key, then
-ask user for the window to select"
+  "Display an overlay in each window showing a unique key.
+In the mean time, prompt PROMPT-MESSAGE and let user select
+a window"
   (let ((window-configuration-change-hook
          (unless switch-window-configuration-change-hook-inhibit
            window-configuration-change-hook))
@@ -816,8 +828,9 @@ ask user for the window to select"
   (run-at-time 0.1 nil #'switch-window--auto-resize-window))
 
 (defun switch-window-resume-auto-resize-window ()
-  "Resume auto resize window feature, which is temporarily
-disabled by commands in `switch-window-extra-map'."
+  "Resume auto resize window feature.
+It is temporarily disabled by commands in
+`switch-window-extra-map'."
   (interactive)
   (setq switch-window--temp-disable-auto-resize nil))
 
