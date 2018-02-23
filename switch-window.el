@@ -606,7 +606,7 @@ Designed to replace `compose-mail-other-window'."
   "Select a window (or create a new one if no others) and run the
 first defined function in `candidate-functions' (a list of
 symbols that potentially name interactive functions)."
-  (let ((f (find-if #'fboundp candidate-functions)))
+  (let ((f (cl-find-if #'fboundp candidate-functions)))
     (switch-window--then
      prompt
      (lambda ()
