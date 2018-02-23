@@ -12,7 +12,7 @@
 ;; Created: 2010-04-30
 ;; Keywords: window navigation
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
-;; Package-Requires: ((cl-lib "0.5"))
+;; Package-Requires: ((emacs "24"))
 ;;
 ;; This file is NOT part of GNU Emacs.
 ;;
@@ -212,7 +212,7 @@
 ;;; Code:
 ;; * Switch-window's code
 
-(require 'cl-lib) ; We use cl-loop and cl-subseq
+(require 'cl-lib)
 (require 'quail)
 (require 'switch-window-asciiart)
 (require 'switch-window-mvborder)
@@ -804,6 +804,7 @@ ask user for the window to select"
 (define-minor-mode switch-window-mouse-mode
   "Enable auto resize window when switch window with mouse."
   :global t
+  :require 'switch-window
   (if switch-window-mouse-mode
       (add-hook 'mouse-leave-buffer-hook
                 #'switch-window--mouse-auto-resize-window)
