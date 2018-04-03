@@ -405,11 +405,23 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
     (cl-loop for frm in (if relative
                             (cons (selected-frame)
                                   (cl-remove (selected-frame) frames))
-                          frames)
+                          (cl-sort frames
+                                   'switch-window--compare-frame-positions))
              append (window-list frm nil
                                  (unless (and relative
                                               (equal frm (selected-frame)))
                                    (frame-first-window frm))))))
+
+(defun switch-window--compare-frame-positions (frm1 frm2)
+  "Compare positions between two frames FRM1 and FRM2."
+  (cl-destructuring-bind
+      ((x1 . y1) (x2 . y2))
+      (list (frame-position frm1) (frame-position frm2))
+    (cond
+     ((< x1 x2) t)
+     ((> x1 x2) nil)
+     ((< y1 y2) t)
+     (t nil))))
 
 (defun switch-window--display-number (win num)
   "Prepare a temp buffer to diplay NUM in the window WIN while choosing."
