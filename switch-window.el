@@ -397,9 +397,19 @@ increase or decrease window's number, for example:
 (defun switch-window--list (&optional from-current-window)
   "List windows for current frame.
 It will start at top left unless FROM-CURRENT-WINDOW is not nil"
-  (if (or from-current-window switch-window-relative)
-      (window-list nil nil)
-    (window-list nil nil (frame-first-window))))
+  (let ((relative (or from-current-window
+                      switch-window-relative))
+        (frames (if (bound-and-true-p switch-window-multiple-frames)
+                    (visible-frame-list)
+                  (list (selected-frame)))))
+    (cl-loop for frm in (if relative
+                            (cons (selected-frame)
+                                  (cl-remove (selected-frame) frames))
+                          frames)
+             append (window-list frm nil
+                                 (unless (and relative
+                                              (equal frm (selected-frame)))
+                                   (frame-first-window frm))))))
 
 (defun switch-window--display-number (win num)
   "Prepare a temp buffer to diplay NUM in the window WIN while choosing."
@@ -662,7 +672,7 @@ the window assocated with the typed key, then call FUNCTION2.
    after FUNCTION2 is called.
 3. When THRESHOLD is not a number, use the value of
    ‘switch-window-threshold’ instead."
-  (if (<= (length (window-list))
+  (if (<= (length (switch-window--list))
           (if (numberp threshold)
               threshold
             switch-window-threshold))
