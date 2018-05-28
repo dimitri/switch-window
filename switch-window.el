@@ -360,6 +360,19 @@ increase or decrease window's number, for example:
 ;; Fix warn when compile switch-window with emacs-no-x
 (defvar image-types)
 
+(defcustom switch-window-multiple-frames nil
+  "When non-nil, run `switch-window' across multiple frames."
+  :type 'boolean
+  :group 'switch-window-multiple-frames)
+
+(defcustom switch-window-frame-list-function
+  'visible-frame-list
+  "Function to get a list of frames.
+
+This function is used when `switch-window-multiple-frames' is non-nil."
+  :type 'function
+  :group 'switch-window)
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys."
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -400,7 +413,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
   (let ((relative (or from-current-window
                       switch-window-relative))
         (frames (if (bound-and-true-p switch-window-multiple-frames)
-                    (visible-frame-list)
+                    (funcall switch-window-frame-list-function)
                   (list (selected-frame)))))
     (cl-loop for frm in (if relative
                             (cons (selected-frame)
