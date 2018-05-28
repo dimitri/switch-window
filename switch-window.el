@@ -331,7 +331,7 @@ Its hook function have no arguments."
      (find-file . helm-find-files)
      (switch-to-buffer . helm-mini))
     (ivy
-     (find-file . counsel-find-files)
+     (find-file . counsel-find-file)
      (switch-to-buffer . ivy-switch-buffer)))
   "The settings of `switch-window-preferred'.")
 
