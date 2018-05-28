@@ -360,6 +360,19 @@ increase or decrease window's number, for example:
 ;; Fix warn when compile switch-window with emacs-no-x
 (defvar image-types)
 
+(defcustom switch-window-multiple-frames nil
+  "When non-nil, run `switch-window' across multiple frames."
+  :type 'boolean
+  :group 'switch-window-multiple-frames)
+
+(defcustom switch-window-frame-list-function
+  'visible-frame-list
+  "Function to get a list of frames.
+
+This function is used when `switch-window-multiple-frames' is non-nil."
+  :type 'function
+  :group 'switch-window)
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys."
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -397,9 +410,31 @@ increase or decrease window's number, for example:
 (defun switch-window--list (&optional from-current-window)
   "List windows for current frame.
 It will start at top left unless FROM-CURRENT-WINDOW is not nil"
-  (if (or from-current-window switch-window-relative)
-      (window-list nil nil)
-    (window-list nil nil (frame-first-window))))
+  (let ((relative (or from-current-window
+                      switch-window-relative))
+        (frames (if (bound-and-true-p switch-window-multiple-frames)
+                    (funcall switch-window-frame-list-function)
+                  (list (selected-frame)))))
+    (cl-loop for frm in (if relative
+                            (cons (selected-frame)
+                                  (cl-remove (selected-frame) frames))
+                          (cl-sort frames
+                                   'switch-window--compare-frame-positions))
+             append (window-list frm nil
+                                 (unless (and relative
+                                              (equal frm (selected-frame)))
+                                   (frame-first-window frm))))))
+
+(defun switch-window--compare-frame-positions (frm1 frm2)
+  "Compare positions between two frames FRM1 and FRM2."
+  (cl-destructuring-bind
+      ((x1 . y1) (x2 . y2))
+      (list (frame-position frm1) (frame-position frm2))
+    (cond
+     ((< x1 x2) t)
+     ((> x1 x2) nil)
+     ((< y1 y2) t)
+     (t nil))))
 
 (defun switch-window--display-number (win num)
   "Prepare a temp buffer to diplay NUM in the window WIN while choosing."
@@ -662,7 +697,7 @@ the window assocated with the typed key, then call FUNCTION2.
    after FUNCTION2 is called.
 3. When THRESHOLD is not a number, use the value of
    ‘switch-window-threshold’ instead."
-  (if (<= (length (window-list))
+  (if (<= (length (switch-window--list))
           (if (numberp threshold)
               threshold
             switch-window-threshold))
