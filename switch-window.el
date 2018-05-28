@@ -363,7 +363,7 @@ increase or decrease window's number, for example:
 (defcustom switch-window-multiple-frames nil
   "When non-nil, run `switch-window' across multiple frames."
   :type 'boolean
-  :group 'switch-window-multiple-frames)
+  :group 'switch-window)
 
 (defcustom switch-window-frame-list-function
   'visible-frame-list
