@@ -220,6 +220,11 @@
   "switch-window customization group"
   :group 'convenience)
 
+(defcustom switch-window-background nil
+  "When t, `switch-window' will dim out all buffers temporarily when used."
+  :type 'boolean
+  :group 'switch-window)
+
 (defcustom switch-window-timeout 5
   "After this many seconds, cancel the window switching."
   :type 'integer
@@ -267,8 +272,9 @@ will be found in this directory."
   "Switch-window's label buffer function.
 This function is used to prepare a temp buffer to diplay
 a window's label string, two optional arguments:
-1. buffer  Label string will be inserted into this buffer.
-2. label   The window's shortcut string."
+1. window  Label string will be showed in this window.
+2. buffer  Label string will be inserted into this buffer.
+3. label   The window's shortcut string."
   :type 'function
   :group 'switch-window)
 
@@ -439,13 +445,16 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
          (buffer (get-buffer-create
                   (format " *%s: %s*"
                           label (buffer-name (window-buffer win))))))
-    (funcall switch-window-label-buffer-function buffer label)
+    (funcall switch-window-label-buffer-function win buffer label)
     (set-window-buffer win buffer)
     buffer))
 
-(defun switch-window--create-label-buffer (&optional buffer label)
+(defun switch-window--create-label-buffer (&optional window buffer label)
   "The default LABEL BUFFER create funcion."
   (with-current-buffer buffer
+    (when switch-window-background
+      (insert-buffer-substring (window-buffer window))
+      (goto-char (point-min)))
     (cond
      ((eq switch-window-shortcut-appearance 'asciiart)
       (setq line-spacing nil)
@@ -473,7 +482,9 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
         (if (and file (display-images-p))
             (insert-image-file (expand-file-name file))
           (insert (propertize label 'face 'switch-window-label))))))
+    (insert " ")
     (goto-char (point-min))
+    (setq-local buffer-read-only t)
     buffer))
 
 (defun switch-window--jump-to-window (index)
