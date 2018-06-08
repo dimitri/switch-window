@@ -8,7 +8,7 @@
 ;; URL: https://github.com/dimitri/switch-window
 ;;      http://tapoueh.org/emacs/switch-window.html
 ;; Git-URL: https://github.com/dimitri/switch-window.git
-;; Version: 1.5.0
+;; Version: 1.6.0
 ;; Created: 2010-04-30
 ;; Keywords: convenience
 ;; Licence: WTFPL, grab your copy here: http://sam.zoy.org/wtfpl/
@@ -165,6 +165,14 @@
 ;; - [[https://github.com/abo-abo/ace-window][ace-window]]
 ;;
 ;; ** Changelog
+;;
+;; *** 1.6.0 - 2018-06-06
+;; 1. Add switch-window-label face to control the appearance of label.
+;; 2. Remove `switch-window-increase', use switch-window-label face instead.
+;; 3. Show orig text with label: see `switch-window-background'
+;; 4. Switch between frames:  see `switch-window-multiple-frames'
+;; 5. [incompatible] `switch-window-label-buffer-function''s arguments have changed,
+;;    user should update when use it.
 ;;
 ;; *** 1.5.0 - 2017-04-29
 ;; - Implement commands:
