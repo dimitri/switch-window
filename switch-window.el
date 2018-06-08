@@ -82,9 +82,8 @@
 ;; #+END_EXAMPLE
 ;;
 ;; *** I want to let window to show bigger label.
-;; #+BEGIN_EXAMPLE
-;; (setq switch-window-increase 6) ;Increase or decrease this number.
-;; #+END_EXAMPLE
+;; The face of label is switch-window-label, user can change it :height
+;; with custiomize-face
 ;;
 ;; *** I want to *hide* window label when window's number < 3
 ;; #+BEGIN_EXAMPLE
@@ -221,11 +220,6 @@
   "switch-window customization group"
   :group 'convenience)
 
-(defcustom switch-window-increase 12
-  "How much to increase text size in the window numbering, maximum."
-  :type 'integer
-  :group 'switch-window)
-
 (defcustom switch-window-timeout 5
   "After this many seconds, cancel the window switching."
   :type 'integer
@@ -272,10 +266,9 @@ will be found in this directory."
   'switch-window--create-label-buffer
   "Switch-window's label buffer function.
 This function is used to prepare a temp buffer to diplay
-a window's label string, three arguments are required:
+a window's label string, two optional arguments:
 1. buffer  Label string will be inserted into this buffer.
-2. label   The window's shortcut string.
-3. scale   Use to increase or decrease label's size."
+2. label   The window's shortcut string."
   :type 'function
   :group 'switch-window)
 
@@ -373,6 +366,10 @@ This function is used when `switch-window-multiple-frames' is non-nil."
   :type 'function
   :group 'switch-window)
 
+(defface switch-window-label
+  '((t (:inherit font-lock-builtin-face :height 3.0)))
+  "Face used by switch-window's key.")
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys."
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -442,12 +439,11 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
          (buffer (get-buffer-create
                   (format " *%s: %s*"
                           label (buffer-name (window-buffer win))))))
-    (funcall switch-window-label-buffer-function
-             buffer label switch-window-increase)
+    (funcall switch-window-label-buffer-function buffer label)
     (set-window-buffer win buffer)
     buffer))
 
-(defun switch-window--create-label-buffer (buffer label scale)
+(defun switch-window--create-label-buffer (&optional buffer label)
   "The default LABEL BUFFER create funcion."
   (with-current-buffer buffer
     (cond
@@ -462,11 +458,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
               :test #'equal)
              switch-window-asciiart))))
      ((eq switch-window-shortcut-appearance 'text)
-      (if (fboundp 'text-scale-increase)
-          (progn (text-scale-increase scale)
-                 (insert label))
-        (insert (propertize
-                 label 'face (list :height (* 1.0 scale))))))
+      (insert (propertize label 'face 'switch-window-label)))
      ((eq switch-window-shortcut-appearance 'image)
       (let ((types (cl-copy-seq image-types))
             file)
@@ -480,10 +472,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
               (setq types nil))))
         (if (and file (display-images-p))
             (insert-image-file (expand-file-name file))
-          (if (fboundp 'text-scale-increase)
-              (progn (text-scale-increase scale)
-                     (insert label))
-            (insert label))))))
+          (insert (propertize label 'face 'switch-window-label))))))
     (goto-char (point-min))
     buffer))
 
