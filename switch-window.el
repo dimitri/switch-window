@@ -452,16 +452,29 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
   (let* ((label (switch-window--label num))
          (buffer (get-buffer-create
                   (format " *%s: %s*"
-                          label (buffer-name (window-buffer win))))))
-    (funcall switch-window-label-buffer-function win buffer label)
+                          label (buffer-name (window-buffer win)))))
+         (background (switch-window--window-substring win)))
+    (funcall switch-window-label-buffer-function win buffer label background)
     (set-window-buffer win buffer)
     buffer))
 
-(defun switch-window--create-label-buffer (&optional window buffer label)
+(defun switch-window--window-substring (window)
+  "Get the buffer substring of window."
+  (let ((height (window-height)))
+    (with-current-buffer (window-buffer window)
+      (let ((begin (progn
+                     (forward-line (* (/ height 2) -1))
+                     (point)))
+            (end (progn
+                   (forward-line height)
+                   (point))))
+        (buffer-substring begin end)))))
+
+(defun switch-window--create-label-buffer (&optional window buffer label background)
   "The default LABEL BUFFER create funcion."
   (with-current-buffer buffer
     (when switch-window-background
-      (insert-buffer-substring (window-buffer window))
+      (insert background)
       (goto-char (point-min)))
     (cond
      ((eq switch-window-shortcut-appearance 'asciiart)
