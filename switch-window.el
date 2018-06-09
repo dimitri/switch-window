@@ -384,6 +384,10 @@ This function is used when `switch-window-multiple-frames' is non-nil."
   '((t (:inherit font-lock-builtin-face :height 3.0)))
   "Face used by switch-window's key.")
 
+(defface switch-window-background
+  '((t (:foreground "gray40")))
+  "Face for switch-window background.")
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys."
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -453,7 +457,9 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
          (buffer (get-buffer-create
                   (format " *%s: %s*"
                           label (buffer-name (window-buffer win)))))
-         (background (switch-window--window-substring win)))
+         (background (propertize
+                      (switch-window--window-substring win)
+                      'face 'switch-window-background)))
     (funcall switch-window-label-buffer-function win buffer label background)
     (set-window-buffer win buffer)
     buffer))
