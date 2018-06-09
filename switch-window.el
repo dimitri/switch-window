@@ -457,9 +457,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
          (buffer (get-buffer-create
                   (format " *%s: %s*"
                           label (buffer-name (window-buffer win)))))
-         (background (propertize
-                      (switch-window--window-substring win)
-                      'face 'switch-window-background)))
+         (background (switch-window--window-substring win)))
     (funcall switch-window-label-buffer-function win buffer label background)
     (set-window-buffer win buffer)
     buffer))
@@ -468,13 +466,22 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
   "Get the buffer substring of window."
   (let ((height (window-height)))
     (with-current-buffer (window-buffer window)
-      (let ((begin (progn
-                     (forward-line (* (/ height 2) -1))
-                     (point)))
-            (end (progn
+      (save-excursion
+        (let ((b (line-beginning-position))
+              (c (line-end-position))
+              (a (progn
+                   (forward-line (* (/ height 2) -1))
+                   (point)))
+              (d (progn
                    (forward-line height)
                    (point))))
-        (buffer-substring begin end)))))
+          (concat (propertize
+                   (buffer-substring a b)
+                   'face 'switch-window-background)
+                  (buffer-substring b c)
+                  (propertize
+                   (buffer-substring c d)
+                   'face 'switch-window-background)))))))
 
 (defun switch-window--create-label-buffer (&optional window buffer label background)
   "The default LABEL BUFFER create funcion."
