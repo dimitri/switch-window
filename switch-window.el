@@ -389,10 +389,10 @@ This function is used when `switch-window-multiple-frames' is non-nil."
   "Face for switch-window background.")
 
 (defun switch-window--other-window-or-frame ()
-  "Select other frame if the current one has only one window.
-Cycle windows otherwise."
-  (if (one-window-p)
-      (other-frame 1)
+  "If `switch-window-multiple-frames' is set cycle through all visible
+windows from all frames. Call `other-window' otherwise."
+  (if switch-window-multiple-frames
+      (switch-window--select-window (next-window nil nil 'visible))
     (other-window 1)))
 
 (defun switch-window--select-window (window)
