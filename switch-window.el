@@ -388,6 +388,23 @@ This function is used when `switch-window-multiple-frames' is non-nil."
   '((t (:foreground "gray40")))
   "Face for switch-window background.")
 
+(defun switch-window--other-window-or-frame ()
+  "Select other frame if the current one has only one window.
+Cycle windows otherwise."
+  (if (one-window-p)
+      (other-frame 1)
+    (other-window 1)))
+
+(defun switch-window--select-window (window)
+  "Switch to the window WINDOW. Select WINDOW's frame respecting
+`focus-follows-mouse' and `mouse-autoselect-window'."
+  (let ((new-frame (window-frame window))
+        (old-frame (selected-frame)))
+    (when (window-live-p window)
+      (select-window window)
+      (if (not (eq new-frame old-frame))
+          (select-frame-set-input-focus new-frame)))))
+
 (defun switch-window--list-keyboard-keys ()
   "Return a list of current keyboard layout keys."
   (cl-loop with layout = (split-string quail-keyboard-layout "")
@@ -526,7 +543,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
   (cl-loop for c from 1
            for win in (switch-window--list)
            until (= c index)
-           finally (select-window win)))
+           finally (switch-window--select-window win)))
 
 (defun switch-window--list-eobp ()
   "Return a list of all the windows where `eobp' is currently true.
@@ -575,7 +592,7 @@ In the mean time, ask user for the window where move to"
   (interactive)
   (switch-window--then
    "Move to window: "
-   #'(lambda () (other-window 1))))
+   #'switch-window--other-window-or-frame))
 
 ;;;###autoload
 (defun switch-window-then-split-horizontally (arg)
@@ -631,8 +648,7 @@ TODO: Argument ARG."
     (set-window-buffer window2 buffer1)
     (set-window-buffer window1 buffer2)
     (if arg
-        (select-window window1)
-      (select-window window2))))
+        (switch-window--select-window window1))))
 
 ;;;###autoload
 (defun switch-window-then-find-file ()
@@ -664,7 +680,7 @@ Designed to replace `display-buffer'."
     (switch-window--then-other-window
      "Show buffer in window: "
      #'switch-to-buffer)
-    (select-window original-window)))
+    (switch-window--select-window original-window)))
 
 ;;;###autoload
 (defun switch-window-then-kill-buffer ()
@@ -745,7 +761,7 @@ the window assocated with the typed key, then call FUNCTION2.
         (funcall function2))
       (when (and return-original-window
                  (window-live-p orig-window))
-        (select-window orig-window))
+        (switch-window--select-window orig-window))
       (switch-window--restore-eobp eobps)))
   (switch-window--auto-resize-window)
   (run-hooks 'switch-window-finish-hook))
