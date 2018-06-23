@@ -20,6 +20,12 @@
 ;;; Code:
 
 ;; * Code                                                                 :code:
+
+(defcustom switch-window-mvborder-increment 5
+  "A value to resize the window by when no prefix is specified."
+  :type 'integer
+  :group 'switch-window)
+
 (defun switch-window--xor (b1 b2)
   (or (and b1 b2)
       (and (not b1) (not b2))))
@@ -28,7 +34,7 @@
   "General function covering switch-window-mvborder-left and switch-window-mvborder-right.
 If DIR is t, then move left, otherwise move right."
   (when (null arg)
-    (setq arg 5))
+    (setq arg switch-window-mvborder-increment))
   (let ((left-edge (nth 0 (window-edges))))
     (if (switch-window--xor (= left-edge 0) dir)
         (shrink-window arg t)
@@ -38,7 +44,7 @@ If DIR is t, then move left, otherwise move right."
   "General function covering switch-window-mvborder-up and switch-window-mvborder-down.
 If DIR is t, then move up, otherwise move down."
   (when (null arg)
-    (setq arg 5))
+    (setq arg switch-window-mvborder-increment))
   (let ((top-edge (nth 1 (window-edges))))
     (if (switch-window--xor (= top-edge 0) dir)
         (shrink-window arg nil)
