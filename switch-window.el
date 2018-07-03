@@ -60,7 +60,7 @@
 ;; | "i" | Move the border up    |
 ;; | "k" | Move the border down  |
 ;; | "j" | Move the border left  |
-;; | "k" | Move the border right |
+;; | "l" | Move the border right |
 ;; | "b" | Balance windows       |
 ;; |"SPC"| Resume auto-resize    |
 ;;
