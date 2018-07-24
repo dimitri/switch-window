@@ -106,7 +106,7 @@ When switch-window is enabled, user can use the below five keys:
 
 
 <tr>
-<td class="org-left">"k"</td>
+<td class="org-left">"l"</td>
 <td class="org-left">Move the border right</td>
 </tr>
 
