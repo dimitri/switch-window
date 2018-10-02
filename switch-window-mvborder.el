@@ -12,7 +12,7 @@
 ;; Author: Unknown
 ;; URL: https://www.emacswiki.org/emacs/WindowResize
 ;;      https://www.emacswiki.org/emacs/GrowShrinkWindows
-;;      https://github.com/ramnes/mvborder
+;;      https://github.com/ramnes/move-border
 ;;
 
 ;;; Commentary:
