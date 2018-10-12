@@ -536,6 +536,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
     (insert " ")
     (goto-char (point-min))
     (setq-local buffer-read-only t)
+    (setq-local show-trailing-whitespace nil)
     buffer))
 
 (defun switch-window--jump-to-window (index)
