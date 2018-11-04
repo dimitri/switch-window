@@ -77,9 +77,10 @@
 ;; *** I want to select a window with "a-z" instead of "1-9".
 ;; #+BEGIN_EXAMPLE
 ;; (setq switch-window-shortcut-style 'qwerty)
-;; (setq switch-window-qwerty-shortcuts
-;;       '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o"))
 ;; #+END_EXAMPLE
+;;
+;; Note: user can arrange qwerty shortcuts by variable
+;; `switch-window-qwerty-shortcuts'.
 ;;
 ;; *** I want to let window to show bigger label.
 ;; The face of label is switch-window-label, user can change it :height
@@ -256,7 +257,9 @@
   :group 'switch-window)
 
 (defcustom switch-window-qwerty-shortcuts
-  '("a" "s" "d" "f" "j" "k" "l" ";" "w" "e" "i" "o" "g" "h" "r" "q" "u" "v" "n")
+  '("a" "s" "d" "f" "j" "k" "l" ";" "g" "h"
+    "q" "w" "e" "r" "t" "y" "u" "i" "p"
+    "z" "x" "c" "v" "b" "n" "m")
   "The list of characters used when ‘switch-window-shortcut-style’ is 'qwerty'."
   :type 'list
   :group 'switch-window)
