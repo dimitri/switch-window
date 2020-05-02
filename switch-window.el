@@ -333,7 +333,8 @@ Its hook function have no arguments."
   "Prefer default commands or helm/ivy style commands."
   :type '(choice (const :tag "Emacs default" 'default)
                  (const :tag "Helm" 'helm)
-                 (const :tag "Ivy or Counsel" 'ivy))
+                 (const :tag "Ivy or Counsel" 'ivy)
+                 (const :tag "Ido" 'ido))
   :group 'switch-window)
 
 (defvar switch-window-preferred-alist
@@ -342,7 +343,11 @@ Its hook function have no arguments."
      (switch-to-buffer . helm-mini))
     (ivy
      (find-file . counsel-find-file)
-     (switch-to-buffer . ivy-switch-buffer)))
+     (switch-to-buffer . ivy-switch-buffer))
+    (ido
+     (find-file . ido-find-file)
+     (switch-to-buffer . ido-switch-buffer)
+     (dired . ido-dired)))
   "The settings of `switch-window-preferred'.")
 
 (defvar switch-window-extra-map
