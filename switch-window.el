@@ -484,7 +484,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
                           label (buffer-name (window-buffer win)))))
          (background (switch-window--window-substring win)))
     (funcall switch-window-label-buffer-function win buffer label background)
-    (set-window-buffer win buffer)
+    (set-window-buffer win buffer switch-window-background)
     buffer))
 
 (defun switch-window--window-substring (window)
@@ -654,8 +654,8 @@ TODO: Argument ARG."
     (switch-window)
     (setq buffer2 (current-buffer))
     (setq window2 (get-buffer-window))
-    (set-window-buffer window2 buffer1)
-    (set-window-buffer window1 buffer2)
+    (set-window-buffer window2 buffer1 t)
+    (set-window-buffer window1 buffer2 t)
     (if arg
         (switch-window--select-window window1))))
 
@@ -900,7 +900,7 @@ a window"
       (mapc 'kill-buffer label-buffers)
       ;; Restore window's buffer, point and dedicate state.
       (dolist (w window-buffers)
-        (set-window-buffer (car w) (cdr w)))
+        (set-window-buffer (car w) (cdr w) t))
       (dolist (w window-points)
         (set-window-point (car w) (cdr w)))
       (dolist (w dedicated-windows)
