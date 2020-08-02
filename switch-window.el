@@ -645,7 +645,7 @@ TODO: Argument ARG ."
 
 ;;;###autoload
 (defun switch-window-then-swap-buffer (arg)
-  "Select a window then swap it buffer with current window's buffer.
+  "Select a window then swap its buffer with current window's buffer.
 TODO: Argument ARG."
   (interactive "P")
   (let ((buffer1 (window-buffer))
