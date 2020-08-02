@@ -866,7 +866,7 @@ a window"
         (minibuffer-num nil)
         (num 1)
         key label-buffers
-        window-buffers window-points dedicated-windows)
+        window-buffers window-margins window-points dedicated-windows)
 
     ;; arrange so that C-g will get back to previous window configuration
     (unwind-protect
@@ -877,6 +877,7 @@ a window"
           ;; then display label buffers in all window.
           (dolist (win (switch-window--list))
             (push (cons win (window-buffer win)) window-buffers)
+            (push (cons win (window-margins win)) window-margins)
             (push (cons win (window-point win)) window-points)
             (when (window-dedicated-p win)
               (push (cons win (window-dedicated-p win)) dedicated-windows)
@@ -901,6 +902,9 @@ a window"
       ;; Restore window's buffer, point and dedicate state.
       (dolist (w window-buffers)
         (set-window-buffer (car w) (cdr w) t))
+      ;; Restore window's margins.
+      (dolist (w window-margins)
+        (set-window-margins (car w) (cadr w) (cddr w)))
       (dolist (w window-points)
         (set-window-point (car w) (cdr w)))
       (dolist (w dedicated-windows)
