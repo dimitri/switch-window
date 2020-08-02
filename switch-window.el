@@ -644,20 +644,31 @@ TODO: Argument ARG ."
    #'split-window-right arg 1))
 
 ;;;###autoload
-(defun switch-window-then-swap-buffer (arg)
-  "Select a window then swap its buffer with current window's buffer.
-TODO: Argument ARG."
+(defun switch-window-then-swap-buffer (&optional keep-focus)
+  "Swap the current window's buffer with a selected window's buffer.
+
+Move the focus on the newly selected window unless KEEP-FOCUS is
+non-nil (aka keep the focus on the current window).
+
+When a window is strongly dedicated to its buffer, this function
+won't take effect, and no buffers will be switched."
   (interactive "P")
   (let ((buffer1 (window-buffer))
         (window1 (get-buffer-window))
         buffer2 window2)
-    (switch-window)
-    (setq buffer2 (current-buffer))
-    (setq window2 (get-buffer-window))
-    (set-window-buffer window2 buffer1 t)
-    (set-window-buffer window1 buffer2 t)
-    (if arg
-        (switch-window--select-window window1))))
+    (if (window-dedicated-p window1)
+        (message "The current window has a dedicated buffer: `%s'" (buffer-name buffer1))
+      (switch-window)
+      (setq buffer2 (current-buffer))
+      (setq window2 (get-buffer-window))
+      (if (window-dedicated-p window2)
+          (progn
+            (select-window window1)
+            (message "The selected window has a dedicated buffer: `%s'" (buffer-name buffer2)))
+        (set-window-buffer window2 buffer1 t)
+        (set-window-buffer window1 buffer2 t)
+        (if keep-focus
+            (switch-window--select-window window1))))))
 
 ;;;###autoload
 (defun switch-window-then-find-file ()
