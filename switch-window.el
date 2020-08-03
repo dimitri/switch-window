@@ -311,7 +311,7 @@ of `switch-window-input-style' is 'default ."
   "Auto resize window's size when switch to a window.
 1. If its value is t, auto resize the selected window.
 2. If its value is a function without arguments,
-   when the returned value it non-nil, auto resize
+   when the returned value is non-nil, auto resize
    the selected window."
   :group 'switch-window)
 
