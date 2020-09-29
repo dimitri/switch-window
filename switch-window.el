@@ -511,6 +511,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
 (defun switch-window--create-label-buffer (&optional window buffer label background)
   "The default LABEL BUFFER create funcion."
   (with-current-buffer buffer
+    (setq truncate-lines t)
     (when switch-window-background
       (insert background)
       (goto-char (point-min)))
