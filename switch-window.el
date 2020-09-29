@@ -313,14 +313,21 @@ of `switch-window-input-style' is 'default ."
 2. If its value is a function without arguments,
    when the returned value it non-nil, auto resize
    the selected window."
+  :type '(choice boolean function)
   :group 'switch-window)
 
 (defcustom switch-window-default-window-size 0.7
   "The default auto resize window's size.
 1. If its value is nil, disable auto resize feature.
-2. If its value is a number (0<x<1), resize selected window to % of frame size.
+2. If its value is a number (0<x<1), resize selected window to fraction of frame size.
 3. If its value is a number (0<x<1) cons, resize selected window to
    car% of frame width and cdr% of frame height."
+  :type '(choice (const :tag "Off" nil)
+                 (float :tag "Fraction of frame size")
+                 (cons
+                  :tag "Fractions of frame width and height"
+                  (float :tag "Fraction of frame width")
+                  (float :tag "Fraction of frame height")))
   :group 'switch-window)
 
 (defcustom switch-window-finish-hook nil
@@ -508,7 +515,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
                    (buffer-substring-no-properties c d)
                    'face 'switch-window-background)))))))
 
-(defun switch-window--create-label-buffer (&optional window buffer label background)
+(defun switch-window--create-label-buffer (&optional _window buffer label background)
   "The default LABEL BUFFER create funcion."
   (with-current-buffer buffer
     (setq truncate-lines t)
