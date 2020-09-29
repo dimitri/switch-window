@@ -518,14 +518,22 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
     (cond
      ((eq switch-window-shortcut-appearance 'asciiart)
       (setq line-spacing nil)
-      (insert
-       (replace-regexp-in-string
-        "^\n" ""
-        (nth (cl-position
-              label
-              (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
-              :test #'equal)
-             switch-window-asciiart))))
+      (let* ((lines (split-string
+                     (replace-regexp-in-string
+                      "^\n" ""
+                      (nth (cl-position
+                            label
+                            (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
+                            :test #'equal)
+                           switch-window-asciiart))
+                     "\n"))
+             (num (apply #'max (mapcar #'length lines))))
+        (goto-char (point-min))
+        (dolist (line lines)
+          (delete-char num)
+          (insert (format (concat "%-" (number-to-string num) "s") line))
+          (insert "  ")
+          (forward-line 1))))
      ((eq switch-window-shortcut-appearance 'text)
       (insert (propertize label 'face 'switch-window-label)))
      ((eq switch-window-shortcut-appearance 'image)
