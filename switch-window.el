@@ -501,11 +501,11 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
                    (forward-line height)
                    (point))))
           (concat (propertize
-                   (buffer-substring a b)
+                   (buffer-substring-no-properties a b)
                    'face 'switch-window-background)
                   (buffer-substring b c)
                   (propertize
-                   (buffer-substring c d)
+                   (buffer-substring-no-properties c d)
                    'face 'switch-window-background)))))))
 
 (defun switch-window--create-label-buffer (&optional window buffer label background)
