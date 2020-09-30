@@ -311,7 +311,7 @@ of `switch-window-input-style' is 'default ."
   "Auto resize window's size when switch to a window.
 1. If its value is t, auto resize the selected window.
 2. If its value is a function without arguments,
-   when the returned value it non-nil, auto resize
+   when the returned value is non-nil, auto resize
    the selected window."
   :type '(choice boolean function)
   :group 'switch-window)
@@ -491,7 +491,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
                           label (buffer-name (window-buffer win)))))
          (background (switch-window--window-substring win)))
     (funcall switch-window-label-buffer-function win buffer label background)
-    (set-window-buffer win buffer)
+    (set-window-buffer win buffer switch-window-background)
     buffer))
 
 (defun switch-window--window-substring (window)
@@ -660,20 +660,31 @@ TODO: Argument ARG ."
    #'split-window-right arg 1))
 
 ;;;###autoload
-(defun switch-window-then-swap-buffer (arg)
-  "Select a window then swap it buffer with current window's buffer.
-TODO: Argument ARG."
+(defun switch-window-then-swap-buffer (&optional keep-focus)
+  "Swap the current window's buffer with a selected window's buffer.
+
+Move the focus on the newly selected window unless KEEP-FOCUS is
+non-nil (aka keep the focus on the current window).
+
+When a window is strongly dedicated to its buffer, this function
+won't take effect, and no buffers will be switched."
   (interactive "P")
   (let ((buffer1 (window-buffer))
         (window1 (get-buffer-window))
         buffer2 window2)
-    (switch-window)
-    (setq buffer2 (current-buffer))
-    (setq window2 (get-buffer-window))
-    (set-window-buffer window2 buffer1)
-    (set-window-buffer window1 buffer2)
-    (if arg
-        (switch-window--select-window window1))))
+    (if (window-dedicated-p window1)
+        (message "The current window has a dedicated buffer: `%s'" (buffer-name buffer1))
+      (switch-window)
+      (setq buffer2 (current-buffer))
+      (setq window2 (get-buffer-window))
+      (if (window-dedicated-p window2)
+          (progn
+            (select-window window1)
+            (message "The selected window has a dedicated buffer: `%s'" (buffer-name buffer2)))
+        (set-window-buffer window2 buffer1 t)
+        (set-window-buffer window1 buffer2 t)
+        (if keep-focus
+            (switch-window--select-window window1))))))
 
 ;;;###autoload
 (defun switch-window-then-find-file ()
@@ -882,7 +893,7 @@ a window"
         (minibuffer-num nil)
         (num 1)
         key label-buffers
-        window-buffers window-points dedicated-windows)
+        window-buffers window-margins window-points dedicated-windows)
 
     ;; arrange so that C-g will get back to previous window configuration
     (unwind-protect
@@ -893,6 +904,7 @@ a window"
           ;; then display label buffers in all window.
           (dolist (win (switch-window--list))
             (push (cons win (window-buffer win)) window-buffers)
+            (push (cons win (window-margins win)) window-margins)
             (push (cons win (window-point win)) window-points)
             (when (window-dedicated-p win)
               (push (cons win (window-dedicated-p win)) dedicated-windows)
@@ -916,7 +928,10 @@ a window"
       (mapc 'kill-buffer label-buffers)
       ;; Restore window's buffer, point and dedicate state.
       (dolist (w window-buffers)
-        (set-window-buffer (car w) (cdr w)))
+        (set-window-buffer (car w) (cdr w) t))
+      ;; Restore window's margins.
+      (dolist (w window-margins)
+        (set-window-margins (car w) (cadr w) (cddr w)))
       (dolist (w window-points)
         (set-window-point (car w) (cdr w)))
       (dolist (w dedicated-windows)
