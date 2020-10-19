@@ -535,6 +535,12 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
                            switch-window-asciiart))
                      "\n"))
              (num (apply #'max (mapcar #'length lines))))
+        ;; Deal with "let: End of buffer" problem.
+        ;; Maybe not beautiful, but simple :-)
+        (goto-char (point-max))
+        (dotimes (_ 20)
+          (insert (make-string num ? ))
+          (insert "\n"))
         (goto-char (point-min))
         (dolist (line lines)
           (delete-char num)
