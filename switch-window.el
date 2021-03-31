@@ -289,9 +289,9 @@ a window's label string, two optional arguments:
   :type 'function
   :group 'switch-window)
 
-(defcustom switch-window-input-style 'default
+(defcustom switch-window-input-style 'minibuffer
   "Use `read-event' or `read-from-minibuffer' to get user's input."
-  :type '(choice (const :tag "Get input by read-event" 'default)
+  :type '(choice (const :tag "Get input by read-event" 'read-event)
                  (const :tag "Get input from minibuffer" 'minibuffer))
   :group 'switch-window)
 
@@ -920,10 +920,10 @@ a window"
               (push (switch-window--display-number win num) label-buffers))
             (setq num (1+ num)))
           ;; get user's input
-          (cond ((eq switch-window-input-style 'default)
+          (cond ((eq switch-window-input-style 'read-event)
                  (setq key (switch-window--get-input
                             prompt-message minibuffer-num eobps)))
-                ((eq switch-window-input-style 'minibuffer)
+                ((member switch-window-input-style '(default minibuffer))
                  (setq key (switch-window--get-minibuffer-input
                             prompt-message minibuffer-num eobps)))))
       ;; clean input-method-previous-message
