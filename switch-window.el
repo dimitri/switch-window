@@ -930,8 +930,6 @@ a window"
       (setq input-method-previous-message nil)
       ;; restore original cursor
       (setq-default cursor-type original-cursor)
-      ;; remove all label-buffers, useless now.
-      (mapc 'kill-buffer label-buffers)
       ;; Restore window's buffer, point and dedicate state.
       (dolist (w window-buffers)
         (set-window-buffer (car w) (cdr w) t))
@@ -941,7 +939,16 @@ a window"
       (dolist (w window-points)
         (set-window-point (car w) (cdr w)))
       (dolist (w dedicated-windows)
-        (set-window-dedicated-p (car w) (cdr w))))
+        (set-window-dedicated-p (car w) (cdr w)))
+
+      ;; remove all label-buffers, useless now.
+      ;; it's important to remove temporary label buffers after restoring original buffers
+      ;; because for protected windows it will also kill the window via `replace-buffer-in-windows''`
+      ;; according to https://www.gnu.org/software/emacs/manual/html_node/elisp/Killing-Buffers.html
+      ;; for protected window a temporary lable buffer will be the only it displays
+      ;; For example, it will kill Treemacs buffer and it's window
+      ;; thus failing to restore it if you run the killing loop before.
+      (mapc 'kill-buffer label-buffers))
     key))
 
 (define-minor-mode switch-window-mouse-mode
