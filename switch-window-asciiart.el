@@ -225,8 +225,16 @@
     ##
    #
  ##
-#######"
-"The asciiart labels of switch-window."))
+#######
+" "
+   ##    (;)
+   ##
+
+   ##
+  #
+")
+  
+"The asciiart labels of switch-window.")
 
 (provide 'switch-window-asciiart)
 ;;; switch-window-asciiart.el ends here

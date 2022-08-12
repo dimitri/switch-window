@@ -530,7 +530,7 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
                       "^\n" ""
                       (nth (cl-position
                             label
-                            (remove "" (split-string "123456789abcdefjhijklmnopqrstuvwxyz" ""))
+                            (remove "" (split-string "123456789abcdefghijklmnopqrstuvwxyz;" ""))
                             :test #'equal)
                            switch-window-asciiart))
                      "\n"))
