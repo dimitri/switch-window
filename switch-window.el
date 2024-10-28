@@ -266,9 +266,9 @@
 
 (defcustom switch-window-shortcut-appearance 'text
   "Switch-window shortcut's appearance."
-  :type '(choice (const :tag "Show shortcut with text" 'text)
-                 (const :tag "Show shortcut with Ascii art." 'asciiart)
-                 (const :tag "Show shortcut with image." 'image))
+  :type '(choice (const :tag "Show shortcut with text" text)
+                 (const :tag "Show shortcut with Ascii art." asciiart)
+                 (const :tag "Show shortcut with image." image))
   :group 'switch-window)
 
 (defcustom switch-window-image-directory (locate-user-emacs-file "switch-window/image")
