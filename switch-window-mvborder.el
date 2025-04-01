@@ -31,7 +31,8 @@
       (and (not b1) (not b2))))
 
 (defun switch-window--mvborder-left-or-right (arg dir)
-  "General function covering switch-window-mvborder-left and switch-window-mvborder-right.
+  "General function covering switch-window-mvborder-left/right.
+
 If DIR is t, then move left, otherwise move right."
   (when (null arg)
     (setq arg switch-window-mvborder-increment))
@@ -41,7 +42,7 @@ If DIR is t, then move left, otherwise move right."
       (enlarge-window arg t))))
 
 (defun switch-window--mvborder-up-or-down (arg dir)
-  "General function covering switch-window-mvborder-up and switch-window-mvborder-down.
+  "General function covering switch-window-mvborder-up/down.
 If DIR is t, then move up, otherwise move down."
   (when (null arg)
     (setq arg switch-window-mvborder-increment))

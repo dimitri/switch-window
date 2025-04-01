@@ -226,7 +226,7 @@
 (require 'switch-window-mvborder)
 
 (defgroup switch-window nil
-  "switch-window customization group"
+  "Switch-window customization group."
   :group 'convenience)
 
 (defcustom switch-window-background nil
@@ -251,17 +251,17 @@
 
 (defcustom switch-window-shortcut-style 'quail
   "Use either keyboard layout or alphabet shortcut style."
-  :type '(choice (const :tag "Alphabet" 'alphabet)
-                 (const :tag "Keyboard Layout" 'quail)
-                 (const :tag "Qwerty Homekeys Layout" 'qwerty))
+  :type '(choice (const :tag "Alphabet" alphabet)
+                 (const :tag "Keyboard Layout" quail)
+                 (const :tag "Qwerty Homekeys Layout" qwerty))
   :group 'switch-window)
 
 (defcustom switch-window-qwerty-shortcuts
   '("a" "s" "d" "f" "j" "k" "l" ";" "g" "h"
     "q" "w" "e" "r" "t" "y" "u" "i" "p"
     "z" "x" "c" "v" "b" "n" "m")
-  "The list of characters used when ‘switch-window-shortcut-style’ is 'qwerty'."
-  :type 'list
+  "The list of characters used when `switch-window-shortcut-style' is \\='qwerty ."
+  :type '(repeat string)
   :group 'switch-window)
 
 (defcustom switch-window-shortcut-appearance 'text
@@ -271,9 +271,11 @@
                  (const :tag "Show shortcut with image." image))
   :group 'switch-window)
 
-(defcustom switch-window-image-directory (locate-user-emacs-file "switch-window/image")
+(defcustom switch-window-image-directory
+  (locate-user-emacs-file "switch-window/image")
   "Switch-window image directory.
-If `switch-window-shortcut-appearance' set to 'image, image file
+
+If `switch-window-shortcut-appearance' set to \\='image, image file
 will be found in this directory."
   :type 'directory
   :group 'switch-window)
@@ -291,8 +293,8 @@ a window's label string, two optional arguments:
 
 (defcustom switch-window-input-style 'minibuffer
   "Use `read-event' or `read-from-minibuffer' to get user's input."
-  :type '(choice (const :tag "Get input by read-event" 'read-event)
-                 (const :tag "Get input from minibuffer" 'minibuffer))
+  :type '(choice (const :tag "Get input by read-event" read-event)
+                 (const :tag "Get input from minibuffer" minibuffer))
   :group 'switch-window)
 
 (defcustom switch-window-minibuffer-shortcut nil
@@ -302,7 +304,7 @@ take whatever the last short is.  If a character is specified
 it will always use that key for the minibuffer shortcut.
 
 Note: this feature only works when the value
-of `switch-window-input-style' is 'default ."
+of `switch-window-input-style' is \\='default ."
   :type '(choice (const :tag "Off" nil)
                  (character "m"))
   :group 'switch-window)
@@ -319,7 +321,8 @@ of `switch-window-input-style' is 'default ."
 (defcustom switch-window-default-window-size 0.7
   "The default auto resize window's size.
 1. If its value is nil, disable auto resize feature.
-2. If its value is a number (0<x<1), resize selected window to fraction of frame size.
+2. If its value is a number (0<x<1), resize selected window
+   to fraction of frame size.
 3. If its value is a number (0<x<1) cons, resize selected window to
    car% of frame width and cdr% of frame height."
   :type '(choice (const :tag "Off" nil)
@@ -338,10 +341,10 @@ Its hook function have no arguments."
 
 (defcustom switch-window-preferred 'default
   "Prefer default commands or helm/ivy style commands."
-  :type '(choice (const :tag "Emacs default" 'default)
-                 (const :tag "Helm" 'helm)
-                 (const :tag "Ivy or Counsel" 'ivy)
-                 (const :tag "Ido" 'ido))
+  :type '(choice (const :tag "Emacs default" default)
+                 (const :tag "Helm" helm)
+                 (const :tag "Ivy or Counsel" ivy)
+                 (const :tag "Ido" ido))
   :group 'switch-window)
 
 (defvar switch-window-preferred-alist
@@ -401,7 +404,7 @@ This function is used when `switch-window-multiple-frames' is non-nil."
 
 (defface switch-window-background
   '((t (:foreground "gray40")))
-  "Face for switch-window background.")
+  "Face for `switch-window' background.")
 
 (defun switch-window--other-window-or-frame ()
   "If `switch-window-multiple-frames' is set cycle through all visible
