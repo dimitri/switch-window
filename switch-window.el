@@ -152,6 +152,42 @@
 ;;
 ;; [[./snapshots/switch-window-2.png]]
 ;;
+;; *** I want to ignore some windows.
+;;
+;; Customize `switch-window-ignore-rules'.
+;;
+;; Each rule is a plist with one or both of these keys:
+;;
+;; - `:name' matches a buffer name using the same CONDITION syntax as
+;;   `display-buffer-alist'.
+;; - `:mode' matches when the buffer's major mode is derived from the
+;;   given mode, or from any mode in a list.
+;;
+;; When a rule has both `:name' and `:mode', both conditions must match.
+;;
+;; Ignore buffers by name:
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-ignore-rules
+;;       '((:name "^\\*Help\\*$")
+;;         (:name "^\\*Warnings\\*$")))
+;; #+END_EXAMPLE
+;;
+;; Ignore buffers by major mode:
+;;
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-ignore-rules
+;;       '((:mode treemacs-mode)
+;;         (:mode (magit-mode special-mode))))
+;; #+END_EXAMPLE
+;;
+;; Combine both conditions in one rule:
+;;
+;; #+BEGIN_EXAMPLE
+;; (setq switch-window-ignore-rules
+;;       '((:name "^\\*Embark Collect \\(Live\\|Completions\\)\\*$"
+;;          :mode embark-collect-mode)))
+;; #+END_EXAMPLE
+;;
 ;; *** `switch-window-shortcut-appearance' can't satisfy my need.  how to do?
 ;; All you should do is hacking you own label buffer function,
 ;; for example: my-switch-window-label-buffer-function, and set
@@ -399,6 +435,45 @@ This function is used when `switch-window-multiple-frames' is non-nil."
   :type 'function
   :group 'switch-window)
 
+(defun switch-window--ignore-rule-p (rule)
+  "Return non-nil if RULE is a valid `switch-window-ignore-rules' entry."
+  (and (plistp rule)
+       (let ((rest rule)
+             (valid t))
+         (while rest
+           (let ((key (pop rest)))
+             (unless (memq key '(:name :mode))
+               (setq valid nil))
+             (pop rest)))
+         valid)
+       (let ((name (plist-get rule :name))
+             (mode (plist-get rule :mode)))
+         (and (or name mode)
+              (or (null mode)
+                  (symbolp mode)
+                  (and (listp mode)
+                       (cl-every #'symbolp mode)))))))
+
+(defcustom switch-window-ignore-rules nil
+  "Rules for excluding windows from `switch-window'.
+
+Each entry is a plist with optional `:name' and `:mode' keys:
+
+  (:name CONDITION :mode MODE)
+
+`:name' uses the same CONDITION syntax as the condition part of
+`display-buffer-alist'.  `:mode' matches when the buffer's major mode
+is derived from MODE, where MODE can be either a single mode symbol
+or a list of mode symbols accepted by `derived-mode-p'.
+
+At least one of `:name' or `:mode' must be non-nil.  When both are
+non-nil, both must match."
+  :type '(repeat
+          (restricted-sexp
+           :tag "Ignore rule"
+           :match-alternatives (switch-window--ignore-rule-p)))
+  :group 'switch-window)
+
 (defface switch-window-label
   '((t (:inherit font-lock-builtin-face :height 3.0)))
   "Face used by switch-window's key.")
@@ -408,11 +483,19 @@ This function is used when `switch-window-multiple-frames' is non-nil."
   "Face for `switch-window' background.")
 
 (defun switch-window--other-window-or-frame ()
-  "If `switch-window-multiple-frames' is set cycle through all visible
-windows from all frames. Call `other-window' otherwise."
-  (if switch-window-multiple-frames
-      (switch-window--select-window (next-window nil nil "visible"))
-    (select-window (next-window nil nil "visible"))))
+  "Select the next non-ignored window in `next-window' order.
+
+When `switch-window-multiple-frames' is non-nil, cycle through all
+visible frames.  Skip windows matched by `switch-window-ignore-rules'."
+  (let* ((selected (selected-window))
+         (frames (and switch-window-multiple-frames "visible"))
+         (window (next-window selected nil frames)))
+    (while (and (not (eq window selected))
+                (switch-window--ignore-window-p window))
+      (setq window (next-window window nil frames)))
+    (unless (and (eq window selected)
+                 (switch-window--ignore-window-p selected))
+      (switch-window--select-window window))))
 
 (defun switch-window--select-window (window)
   "Switch to the window WINDOW. Select WINDOW's frame respecting
@@ -458,6 +541,90 @@ windows from all frames. Call `other-window' otherwise."
   "Return the label to use for a given window NUM."
   (nth (- num 1) (switch-window--enumerate)))
 
+(defun switch-window--buffer-match-p (condition buffer-or-name &rest args)
+  "Return non-nil if BUFFER-OR-NAME matches CONDITION.
+
+Call `buffer-match-p' when available.
+
+On older Emacs versions, emulate only the CONDITION forms needed by
+`switch-window-ignore-rules'."
+  (if (fboundp 'buffer-match-p)
+      (apply #'buffer-match-p condition buffer-or-name args)
+    (let ((buffer (get-buffer buffer-or-name)))
+      (pcase condition
+        ('t t)
+        ('nil nil)
+        ((pred stringp)
+         (and buffer
+              (string-match-p condition (buffer-name buffer))))
+        ((pred functionp)
+         (apply condition buffer-or-name args))
+        (`(category . ,category)
+         (eq (cdr (assq 'category (cdar args))) category))
+        (`(this-command . ,command-or-commands)
+         (if (listp command-or-commands)
+             (memq this-command command-or-commands)
+           (eq this-command command-or-commands)))
+        (`(major-mode . ,mode)
+         (and buffer
+              (eq (buffer-local-value 'major-mode buffer) mode)))
+        (`(derived-mode . ,mode-spec)
+         (and buffer
+              (with-current-buffer buffer
+                (apply #'derived-mode-p
+                       (if (listp mode-spec)
+			   mode-spec
+			 (list mode-spec))))))
+        (`(not . ,cond)
+         (not (apply #'switch-window--buffer-match-p
+		     cond buffer-or-name args)))
+        (`(or . ,conditions)
+         (cl-some (lambda (cond)
+                    (apply #'switch-window--buffer-match-p
+			   cond buffer-or-name args))
+                  conditions))
+        (`(and . ,conditions)
+         (cl-every (lambda (cond)
+                     (apply #'switch-window--buffer-match-p
+			    cond buffer-or-name args))
+                   conditions))
+        (_
+	 (error "Unsupported matcher in `switch-window-ignore-rules': %S"
+                condition))))))
+
+(defun switch-window--ignore-buffer-p (rule buffer)
+  "Return non-nil if RULE matches BUFFER.
+RULE must be a plist accepted by `switch-window-ignore-rules'."
+  (unless (switch-window--ignore-rule-p rule)
+    (error "Invalid `switch-window-ignore-rules' entry: %S" rule))
+  (let ((conditions nil)
+        (name (plist-get rule :name))
+        (mode (plist-get rule :mode)))
+    (when name
+      (push name conditions))
+    (when mode
+      (push `(derived-mode . ,mode) conditions))
+    (setq conditions (nreverse conditions))
+    (switch-window--buffer-match-p
+     (if (cdr conditions)
+         (cons 'and conditions)
+       (car conditions))
+     (buffer-name buffer))))
+
+(defun switch-window--ignore-window-p (window)
+  "Return non-nil if WINDOW should be ignored per `switch-window-ignore-rules'."
+  (let ((buffer (window-buffer window)))
+    (cl-some (lambda (rule)
+               (switch-window--ignore-buffer-p rule buffer))
+             switch-window-ignore-rules)))
+
+(defun switch-window--filter-window-list (windows)
+  "Return WINDOWS filtered by `switch-window-ignore-rules'."
+  (if (null switch-window-ignore-rules)
+      windows
+    (cl-remove-if #'switch-window--ignore-window-p windows)))
+
+
 (defun switch-window--list (&optional from-current-window)
   "List windows for current frame.
 It will start at top left unless FROM-CURRENT-WINDOW is not nil"
@@ -466,15 +633,16 @@ It will start at top left unless FROM-CURRENT-WINDOW is not nil"
         (frames (if (bound-and-true-p switch-window-multiple-frames)
                     (funcall switch-window-frame-list-function)
                   (list (selected-frame)))))
-    (cl-loop for frm in (if relative
-                            (cons (selected-frame)
-                                  (cl-remove (selected-frame) frames))
-                          (cl-sort frames
-                                   'switch-window--compare-frame-positions))
-             append (window-list frm nil
-                                 (unless (and relative
-                                              (equal frm (selected-frame)))
-                                   (frame-first-window frm))))))
+    (switch-window--filter-window-list
+     (cl-loop for frm in (if relative
+                             (cons (selected-frame)
+                                   (cl-remove (selected-frame) frames))
+                           (cl-sort frames
+                                    'switch-window--compare-frame-positions))
+              append (window-list frm nil
+                                  (unless (and relative
+                                               (equal frm (selected-frame)))
+                                    (frame-first-window frm)))))))
 
 (defun switch-window--compare-frame-positions (frm1 frm2)
   "Compare positions between two frames FRM1 and FRM2."
