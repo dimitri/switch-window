@@ -770,11 +770,25 @@ Designed to replace `compose-mail-other-window'."
     (switch-window--then
      prompt
      (lambda ()
-       (select-window
-        (if (one-window-p)
-            (split-window-right)
-          (next-window)))
-       (call-interactively f))
+       (let* ((original-window (selected-window))
+              (created-window
+               (and (one-window-p)
+                    (or (split-window-sensibly)
+                        (user-error
+                         "Cannot split selected window sensibly"))))
+              (target-window
+               (or created-window
+                   (next-window))))
+         (select-window target-window)
+         (condition-case signal-data
+             (call-interactively f)
+           ((quit error)
+            (when (and created-window
+                       (window-live-p created-window))
+              (delete-window created-window))
+            (when (window-live-p original-window)
+              (select-window original-window))
+            (signal (car signal-data) (cdr signal-data))))))
      (lambda () (call-interactively f))
      nil
      2)))
